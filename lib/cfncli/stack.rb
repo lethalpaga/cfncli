@@ -30,30 +30,6 @@ module CfnCli
       !succeeded? && !in_progress?
     end
 
-    def finished_states
-      states.select do |state|
-        res = false
-        res ||= state.end_with? 'FAILED'
-        res ||= state.end_with? 'COMPLETE'
-      end
-    end
-
-    def transitive_states
-      states - finished_states
-    end
-
-    def success_states
-      [
-        'CREATE_COMPLETE',
-        'DELETE_COMPLETE',
-        'UPDATE_COMPLETE'
-      ]
-    end
-
-    def failed_states
-      states - success_states - transitive_states
-    end
-
     def states
       [
         'CREATE_IN_PROGRESS',
@@ -74,6 +50,28 @@ module CfnCli
         'UPDATE_ROLLBACK_COMPLETE_CLEANUP_IN_PROGRESS',
         'UPDATE_ROLLBACK_COMPLETE',
       ]
+    end
+
+    def success_states
+      [
+        'CREATE_COMPLETE',
+        'DELETE_COMPLETE',
+        'UPDATE_COMPLETE'
+      ]
+    end
+
+    def transitive_states
+      states.select do |state|
+        state.end_with? 'IN_PROGRESS'
+      end
+    end
+
+    def finished_states
+      states - transitive_states
+    end
+
+    def failed_states
+      states - success_states - transitive_states
     end
   end
 end
