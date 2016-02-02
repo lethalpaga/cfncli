@@ -1,5 +1,6 @@
 require 'pp'
 require 'cfncli/cfn_client'
+require 'waiting'
 
 module CfnCli
   class CloudFormation
@@ -8,6 +9,9 @@ module CfnCli
     def initialize(interval=10, retries=10)
       @interval = 10
       @retries = 10
+
+      Waiting.default_max_attempts = @retries
+      Waiting.default_interval = @interval
     end
 
     # Creates a stack and wait for the creation to be finished
@@ -16,9 +20,8 @@ module CfnCli
     def create_stack(options)
       puts "Create stack with options #{pp options}"
       cfn.create_stack(options)
-      waiter = Waiter::Waiter.new(@interval, @retries)
-      waiter.wait do |waiter|
-        waiter.ok if stack.finished_state?
+      Waiting.wait do |waiter|
+        waiter.done if stack.finished_state?
       end
     end
 
