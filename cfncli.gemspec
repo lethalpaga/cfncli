@@ -5,7 +5,7 @@ require 'cfncli/version'
 
 Gem::Specification.new do |spec|
   spec.name          = "cfncli"
-  spec.version       = Cfncli::VERSION
+  spec.version       = CfnCli::VERSION
   spec.authors       = ["lethalpaga"]
   spec.email         = ["lethalpaga@gmail.com"]
 
@@ -27,4 +27,5 @@ Gem::Specification.new do |spec|
  
   spec.add_dependency "thor"
   spec.add_dependency "aws-sdk", "~> 2"
+  spec.add_dependency "waiter", "~> 0"
 end

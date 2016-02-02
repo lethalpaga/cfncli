@@ -2,7 +2,7 @@ require "cfncli/version"
 
 require 'thor'
 
-module Cfncli
+module CfnCli
   class Cli < Thor
     def create
       puts "Creating stack"
