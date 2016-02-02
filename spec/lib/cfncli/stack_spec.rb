@@ -9,7 +9,11 @@ def describe_stacks_resp(status)
 end
 
 describe CfnCli::Stack do
-  subject(:stack) { CfnCli::Stack.new('test-stack') }
+  subject(:stack) do
+    stack = CfnCli::Stack.new('test-stack')
+    stack.stub_responses = true
+    stack
+  end
 
   let(:client) {stack.cfn.client}
 
