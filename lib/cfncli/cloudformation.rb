@@ -26,7 +26,7 @@ module CfnCli
         waiter.done if stack.finished?
       end
       stack.succeeded?
-    rescue RuntimeError => e
+    rescue Waiting::TimedOutError => e
       false
     end
   end
