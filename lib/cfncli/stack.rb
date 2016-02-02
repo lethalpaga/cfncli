@@ -18,6 +18,18 @@ module CfnCli
       finished_states.include? stack.stack_status
     end
 
+    def succeeded?
+      success_states.include? stack.stack_status
+    end
+
+    def in_progress?
+      transitive_states.include? stack.stack_status
+    end
+
+    def failed?
+      !succeeded? && !in_progress?
+    end
+
     def finished_states
       states.select do |state|
         res = false
