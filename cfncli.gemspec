@@ -28,4 +28,5 @@ Gem::Specification.new do |spec|
   spec.add_dependency "thor"
   spec.add_dependency "aws-sdk", "~> 2"
   spec.add_dependency "waiting", "~> 0"
+  spec.add_dependency "activesupport", "~> 4"
 end

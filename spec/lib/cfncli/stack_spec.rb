@@ -1,59 +1,15 @@
 require 'cfncli/stack'
 
-def stub_stack(stack)
-  {
-    describe_stacks: {
-      stacks: [
-        stack
-      ]
-    },
-    list_stacks: {
-      stack_summaries: [
-        stack
-      ]
-    }
-  }
-end
+include CfnCli::StackUtils
 
 describe CfnCli::Stack do
   subject(:stack) { CfnCli::Stack.new('test-stack') }
-
-  before do
-    Aws.config[:stub_responses] = stubbed_response
-  end
-
-  let(:update_in_progress_stack) do
-    {
-      stack_id: 'test-stack-id',
-      stack_name: 'test-stack',
-      creation_time: Time.now,
-      stack_status: 'UPDATE_IN_PROGRESS',
-    }
-  end
-
-  let(:update_failed_stack) do
-    {
-      stack_id: 'test-stack-id',
-      stack_name: 'test-stack',
-      creation_time: Time.now,
-      stack_status: 'UPDATE_FAILED',
-    }
-  end
-
-  let(:updated_stack) do
-    {
-      stack_id: 'test-stack-id',
-      stack_name: 'test-stack',
-      creation_time: Time.now,
-      stack_status: 'UPDATE_COMPLETE',
-    }
-  end
 
   describe '#finished?' do
     subject { stack.finished? }
 
     context 'when in a finished state' do
-      let(:stubbed_response) { stub_stack(updated_stack) }
+      let(:stubbed_response) { stub_stack(CfnCli::StackUtils.updated_stack) }
 
       it { is_expected.to be true }
     end
