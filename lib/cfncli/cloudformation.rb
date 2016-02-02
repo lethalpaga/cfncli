@@ -1,10 +1,13 @@
-require 'aws-sdk'
 require 'pp'
+require 'cfncli/cfn_client'
 
 module CfnCli
   class CloudFormation
-    def initialize
+    include CfnClient
 
+    def initialize(interval=10, retries=10)
+      @interval = 10
+      @retries = 10
     end
 
     # Creates a stack and wait for the creation to be finished
@@ -13,13 +16,14 @@ module CfnCli
     def create_stack(options)
       puts "Create stack with options #{pp options}"
       cfn.create_stack(options)
+      waiter = Waiter::Waiter.new(@interval, @retries)
+      waiter.wait do |waiter|
+        waiter.ok if stack.finished_state?
+      end
     end
-   
-    # Clouformation Resource
-    # This is used to interact with the CloudFormation API
-    # @see http://docs.aws.amazon.com/sdkforruby/api/Aws/CloudFormation/Resource.html
-    def cfn
-      @resource ||= Aws::CloudFormation::Resource.new
+
+    def stack(stack_name)
+      @stack ||= CfnCli::Stack.new(stack_name)
     end
   end
 end
