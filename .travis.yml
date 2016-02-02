@@ -2,6 +2,7 @@ language: ruby
 rvm:
   - 2.2
 sudo: false
+before_install:
+  - gem install bundler -v '~> 1.10'
 script:
-  - gem install bundler -v '~> 0.10'
   - bundle exec rake spec
