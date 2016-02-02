@@ -1,0 +1,4 @@
+#!/usr/bin/env ruby
+require 'cfncli/cli'
+
+CfnCli::Cli.start
