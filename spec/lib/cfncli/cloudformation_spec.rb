@@ -6,6 +6,7 @@ describe CfnCli::CloudFormation do
     cfn = CfnCli::CloudFormation.new
     cfn.retries = 1
     cfn.interval = 0
+    cfn.stub_responses = true
     cfn
   end
 
@@ -18,19 +19,37 @@ describe CfnCli::CloudFormation do
 
   describe '#create_stack' do
     subject { cfn.create_stack(stack_params) }
+    let(:client) {cfn.cfn.client}
+
+    let(:create_stack_resp) do
+      client.stub_data(:create_stack, stack_id: 'test-stack-id')
+    end
 
     before do
-      cfn.cfn.client.stub_responses(true)
+      client.stub_responses(:create_stack, create_stack_resp)
+      client.stub_responses(:describe_stacks, describe_stacks_resp)
     end
 
     context 'when successful' do
-      let(:stubbed_response) { stub_stack(updated_stack) }
+      let(:describe_stacks_resp) do
+        client.stub_data(:describe_stacks, stacks: [{
+          stack_id: 'test-stack-id',
+          stack_name: 'test-stack',
+          stack_status: 'CREATE_COMPLETE'
+        }])
+      end
 
       it { is_expected.to be true }
     end
 
     context 'when failed' do
-      let(:stubbed_response) { stub_stack(update_failed_stack) }
+      let(:describe_stacks_resp) do
+        client.stub_data(:describe_stacks, stacks: [{
+          stack_id: 'test-stack-id',
+          stack_name: 'test-stack',
+          stack_status: 'CREATE_FAILED'
+        }])
+      end
 
       it { is_expected.to be false }
     end

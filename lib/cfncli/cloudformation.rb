@@ -1,6 +1,8 @@
-require 'pp'
 require 'cfncli/cfn_client'
+require 'cfncli/stack'
+
 require 'waiting'
+require 'pp'
 
 module CfnCli
   class CloudFormation
@@ -17,22 +19,15 @@ module CfnCli
     # @param options [Hash] Options for the stack creation 
     #                       (@see http://docs.aws.amazon.com/sdkforruby/api/Aws/CloudFormation/Client.html)
     def create_stack(options)
-      @stack_name = options['stack_name']
-
-      cfn.create_stack(options)
+      resp = cfn.create_stack(options)
+      stack = CfnCli::Stack.new(resp.name)
 
       Waiting.wait(max_attempts: @retries, interval: @interval) do |waiter|
         waiter.done if stack.finished?
       end
-      true
+      stack.succeeded?
     rescue RuntimeError => e
       false
-    end
-
-    def stack(stack_name = nil)
-      stack_name ||= @stack_name
-      @stack ||= CfnCli::Stack.new(stack_name)
-      @stack
     end
   end
 end

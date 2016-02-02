@@ -9,7 +9,7 @@ module CfnCli
     end
 
     def stack
-      @stack ||= cfn.stack(@stack_name)
+      @stack = cfn.stack(@stack_name)
       fail ArgumentError, "Stack #{@stack_name} not found" unless @stack
       @stack
     end
