@@ -91,8 +91,8 @@ module CfnCli
                   default: 1,
                   desc: 'Log level to display (0=DEBUG, 1=INFO, 2=ERROR, 3=CRITICAL)'
 
-    desc 'create', 'Creates a stack in Cloudformation'
-    def create
+    desc 'apply', 'Creates a stack in Cloudformation'
+    def apply
       opts = process_params(options.dup)
 
       interval = consume_option(opts, 'interval')

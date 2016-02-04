@@ -26,7 +26,7 @@ Or install it yourself as:
 
 ```
 cfncli help
-cfncli help create
+cfncli help apply
 ```
 
 ## Development
