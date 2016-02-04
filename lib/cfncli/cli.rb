@@ -7,6 +7,12 @@ require 'cfncli/config'
 module CfnCli
   class Cli < Thor
 
+    # Global options
+    class_option 'log_level',
+                  type: :numeric,
+                  default: 1,
+                  desc: 'Log level to display (0=DEBUG, 1=INFO, 2=ERROR, 3=CRITICAL)'
+
     # Stack options
     method_option 'stack_name',
                   type: :string,
@@ -86,14 +92,9 @@ module CfnCli
                   default: false,
                   desc: 'Fails if a stack has nothing to update'
 
-    method_option 'log_level',
-                  type: :numeric,
-                  default: 1,
-                  desc: 'Log level to display (0=DEBUG, 1=INFO, 2=ERROR, 3=CRITICAL)'
-
     desc 'apply', 'Creates a stack in Cloudformation'
     def apply
-      opts = process_params(options.dup)
+      opts = process_params(options)
 
       interval = consume_option(opts, 'interval')
       timeout = consume_option(opts, 'timeout')
