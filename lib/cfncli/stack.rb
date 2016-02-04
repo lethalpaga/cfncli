@@ -39,6 +39,9 @@ module CfnCli
       stack.exists?
     end
 
+    # Creates a new stack
+    # @param opts Hash containing the options for `create_stack`
+    #             (see http://docs.aws.amazon.com/sdkforruby/api/Aws/CloudFormation/Resource.html#create_stack-instance_method)
     def create(opts)
       logger.debug "Creating a stack (#{opts.inspect})"
       @stack = cfn.create_stack(opts)
@@ -46,6 +49,9 @@ module CfnCli
       @stack_id = stack.stack_id
     end
 
+    # Updates an existing stack
+    # @param opts Hash containing the options for `update_stack`
+    #             (see http://docs.aws.amazon.com/sdkforruby/api/Aws/CloudFormation/Client.html#update_stack-instance_method)
     def update(opts)
       logger.debug "Updating a stack (#{opts.inspect})"
       resp = cfn.client.update_stack(opts)
@@ -55,7 +61,9 @@ module CfnCli
         raise e
       end
     end
-
+  
+    # Waits for a stack to be in a finished state
+    # @return A boolean indicating if the operation was succesful
     def wait_for_completion
       Waiting.wait(max_attempts: @config.retries, interval: @config.interval) do |waiter|
         waiter.done if finished?
@@ -66,12 +74,15 @@ module CfnCli
       false
     end
  
+
+    # Indicates if the stack is in a finished state
     def finished?
       logger.debug "Checking if stack exists, stack=#{stack.inspect}, status=#{stack.stack_status unless stack.nil?}"
       return false if stack.nil?
       finished_states.include? stack.stack_status
     end
 
+    # Indicates if the stack is in a successful state
     def succeeded?
       res = success_states.include? stack.stack_status
       logger.debug "Checking if stack #{stack} has succeded (#{res})"
@@ -79,15 +90,18 @@ module CfnCli
       res
     end
 
+    # Indicates if the stack is in a transition state
     def in_progress?
       return false if stack.nil?
       transitive_states.include? stack.stack_status
     end
 
+    # Indicates if the stack is in a failed state
     def failed?
       !succeeded? && !in_progress?
     end
 
+    # List of possible states
     def states
       [
         'CREATE_IN_PROGRESS',
@@ -110,6 +124,7 @@ module CfnCli
       ]
     end
 
+    # List of successful states
     def success_states
       [
         'CREATE_COMPLETE',
@@ -118,22 +133,26 @@ module CfnCli
       ]
     end
 
+    # List of transitive states
     def transitive_states
       states.select do |state|
         state.end_with? 'IN_PROGRESS'
       end
     end
 
+    # List of finished states
     def finished_states
       states - transitive_states
     end
 
+    # List of failed or unknown states
     def failed_states
       states - success_states - transitive_states
     end
 
     private
 
+    # Gets stack info from the cfn API
     def fetch_stack
       @stack = cfn.stack(stack_id)
       @stack

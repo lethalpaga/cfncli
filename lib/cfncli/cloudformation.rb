@@ -21,6 +21,7 @@ module CfnCli
       stack.wait_for_completion
     end
 
+    # Creates a stack if it doesn't exist otherwise update it
     def create_or_update_stack(options, config = nil)
       opts = process_params(options.dup)
       
@@ -37,10 +38,16 @@ module CfnCli
       stack
     end
 
+
+    private
+
+    # Creates a new stack object
+    # Mainly useful to mock it in unit tests
     def create_stack_obj(stack_name, config)
       CfnCli::Stack.new(stack_name, config)
     end
 
+    # Process the parameters
     def process_params(opts)
       opts.delete('disable_rollback')
       opts

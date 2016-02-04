@@ -110,6 +110,10 @@ module CfnCli
     end
 
     no_tasks do
+      # Reads an option from a hash and deletes it
+      # @param opts [Hash] Hash containing the options
+      # @param option Key to consume
+      # @return value of Key option in opts
       def consume_option(opts, option)
         res = opts[option]
         opts.delete(option)
@@ -117,7 +121,10 @@ module CfnCli
       end
 
       # Process the parameters to make them compliant with the Cloudformation API
+      # @param opts [Hash] Hash containing the options. The hash will not be modified
+      # @return the processed options hash
       def process_params(opts)
+        opts = opts.dup
         check_exclusivity(opts.keys, ['template_body', 'template_url'])
         check_exclusivity(opts.keys, ['disable_rollback', 'on_failure'])
         check_exclusivity(opts.keys, ['stack_policy_body', 'stack_policy_url'])
@@ -141,6 +148,7 @@ module CfnCli
 
       # Gets the content of a string that can either be the
       # content itself or a filename if beginning by @
+      # @param str [String] String containing either the content or the filename to read
       def file_or_content(str)
         return str if str.nil?
         return str unless str.start_with? '@'
@@ -148,6 +156,7 @@ module CfnCli
       end
 
       # Converts a parameters hash in the format expected by CloudFormation
+      # @param parameters [Hash] Hash containing the parameters to convert
       def process_stack_parameters(parameters)
         return {} unless parameters
 
