@@ -5,7 +5,7 @@
     "SecurityGroup": {
       "Type" : "AWS::EC2::SecurityGroup",
       "Properties" : {
-         "GroupDescription" : "Test security group. Can be deleted2"
+         "GroupDescription" : "Test security group. Can be deleted"
       }
     }
   }

@@ -15,7 +15,6 @@ describe CfnCli::CloudFormation do
 
     before do
       expect(cfn).to receive(:create_stack_obj).and_return(stack)
-      expect(stack).to receive(:stack_name).and_return(exists)
       allow(stack).to receive(:exists?).and_return(exists)
     end
 

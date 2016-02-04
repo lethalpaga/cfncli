@@ -87,10 +87,9 @@ module CfnCli
                   desc: 'Fails if a stack has nothing to update'
 
     method_option 'log_level',
-                  type: :string,
-                  default: 'INFO',
-                  enum: ['DEBUG', 'INFO', 'ERROR', 'CRITICAL'],
-                  desc: 'Log level to display'
+                  type: :numeric,
+                  default: 1,
+                  desc: 'Log level to display (0=DEBUG, 1=INFO, 2=ERROR, 3=CRITICAL)'
 
     desc 'create', 'Creates a stack in Cloudformation'
     def create
@@ -98,10 +97,10 @@ module CfnCli
 
       interval = consume_option(opts, 'interval')
       timeout = consume_option(opts, 'timeout')
-      retries = @timeout / @interval 
+      retries = timeout / interval 
       fail_on_noop = consume_option(opts, 'fail_on_noop')
 
-      ENV['CFNCLI_LOG_LEVEL'] = consume_option(opts, 'log_level')
+      ENV['CFNCLI_LOG_LEVEL'] = consume_option(opts, 'log_level').to_s
 
       client_config = Config::CfnClient.new(interval, retries, fail_on_noop)
       res = cfn.create_stack(opts, client_config)

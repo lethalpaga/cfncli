@@ -32,7 +32,7 @@ module CfnCli
     end
 
     def stack
-      @stack || fetch_stack
+      fetch_stack
     end
 
     def exists?
@@ -67,7 +67,7 @@ module CfnCli
     end
  
     def finished?
-      logger.debug "Checking if stack exists, stack=#{stack}, status=#{stack.stack_status unless stack.nil?}"
+      logger.debug "Checking if stack exists, stack=#{stack.inspect}, status=#{stack.stack_status unless stack.nil?}"
       return false if stack.nil?
       finished_states.include? stack.stack_status
     end

@@ -11,7 +11,7 @@ module CfnCli
     def logger
       if @logger.nil?
         @logger = Logger.new(STDOUT)
-        @logger.level = ENV['CFNCLI_LOG_LEVEL'] || Logger::INFO
+        @logger.level = ENV['CFNCLI_LOG_LEVEL'].to_i || Logger::INFO
         @logger.formatter = proc do |severity, datetime, progname, msg|
           severity = severity.ljust(7)
           progname = "#{progname}: " if progname

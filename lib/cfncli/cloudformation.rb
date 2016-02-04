@@ -28,7 +28,6 @@ module CfnCli
       
       stack = create_stack_obj(stack_name, config)
       
-      logger.debug "The stack #{stack.stack_name} #{stack.exists? ? 'exists': 'does not exist'}"
       if stack.exists?
         stack.update(opts)
       else
