@@ -1,5 +1,6 @@
 require 'cfncli/cfn_client'
 require 'cfncli/stack'
+require 'cfncli/logger'
 
 require 'waiting'
 require 'pp'
@@ -7,27 +8,43 @@ require 'pp'
 module CfnCli
   class CloudFormation
     include CfnClient
+    include Loggable
 
-    attr_accessor :interval, :retries
-
-    def initialize(interval=10, retries=10)
-      @interval = 10
-      @retries = 10
+    def initialize
     end
 
     # Creates a stack and wait for the creation to be finished
     # @param options [Hash] Options for the stack creation 
     #                       (@see http://docs.aws.amazon.com/sdkforruby/api/Aws/CloudFormation/Client.html)
-    def create_stack(options)
-      resp = cfn.create_stack(options)
-      stack = CfnCli::Stack.new(resp.name)
+    def create_stack(options, config = nil)
+      stack = create_or_update_stack(options, config)
+      stack.wait_for_completion
+    end
 
-      Waiting.wait(max_attempts: @retries, interval: @interval) do |waiter|
-        waiter.done if stack.finished?
+    def create_or_update_stack(options, config = nil)
+      opts = process_params(options.dup)
+      
+      stack_name = opts['stack_name']
+      
+      stack = create_stack_obj(stack_name, config)
+      
+      logger.debug "The stack #{stack.stack_name} #{stack.exists? ? 'exists': 'does not exist'}"
+      if stack.exists?
+        stack.update(opts)
+      else
+        stack.create(opts)
       end
-      stack.succeeded?
-    rescue Waiting::TimedOutError => e
-      false
+      
+      stack
+    end
+
+    def create_stack_obj(stack_name, config)
+      CfnCli::Stack.new(stack_name, config)
+    end
+
+    def process_params(opts)
+      opts.delete('disable_rollback')
+      opts
     end
   end
 end

@@ -1,9 +1,13 @@
 require 'thor'
 require 'aws-sdk'
+
 require 'cfncli/cloudformation'
+require 'cfncli/config'
 
 module CfnCli
   class Cli < Thor
+
+    # Stack options
     method_option 'stack_name',
                   type: :string,
                   required: true,
@@ -66,13 +70,53 @@ module CfnCli
                   type: :hash,
                   desc: 'Key-value pairs to associate with this stack'
 
+    # Application options
+    method_option 'interval',
+                  type: :numeric,
+                  default: 10,
+                  desc: 'Polling interval (in seconds) for the cloudformation events'
+
+    method_option 'timeout',
+                  type: :numeric,
+                  default: 1800,
+                  desc: 'Timeout (in seconds) for the stack creation'
+
+    method_option 'fail_on_noop',
+                  type: :boolean,
+                  default: false,
+                  desc: 'Fails if a stack has nothing to update'
+
+    method_option 'log_level',
+                  type: :string,
+                  default: 'INFO',
+                  enum: ['DEBUG', 'INFO', 'ERROR', 'CRITICAL'],
+                  desc: 'Log level to display'
+
     desc 'create', 'Creates a stack in Cloudformation'
     def create
       opts = process_params(options.dup)
-      cfn.create_stack(opts) 
+
+      interval = consume_option(opts, 'interval')
+      timeout = consume_option(opts, 'timeout')
+      retries = @timeout / @interval 
+      fail_on_noop = consume_option(opts, 'fail_on_noop')
+
+      ENV['CFNCLI_LOG_LEVEL'] = consume_option(opts, 'log_level')
+
+      client_config = Config::CfnClient.new(interval, retries, fail_on_noop)
+      res = cfn.create_stack(opts, client_config)
+
+      puts "Stack creation #{res ? 'successful' : 'failed'}"
+      exit res
     end
 
     no_tasks do
+      def consume_option(opts, option)
+        res = opts[option]
+        opts.delete(option)
+        res
+      end
+
       # Process the parameters to make them compliant with the Cloudformation API
       def process_params(opts)
         check_exclusivity(opts.keys, ['template_body', 'template_url'])
@@ -81,7 +125,6 @@ module CfnCli
 
         opts['template_body'] = file_or_content(opts['template_body']) if opts['template_body']
         opts['stack_policy_body'] = file_or_content(opts['stack_policy_body']) if opts['stack_policy_body']
-
         opts['parameters'] = process_stack_parameters(opts['parameters']) if opts['parameters']
 
         opts
@@ -90,8 +133,8 @@ module CfnCli
       # Check if only one of the arguments is specified in the options
       # @param options [Arrray<String>] List of available options
       # @param exclusives [Array<String>] List of mutually exclusive options
-      def check_exclusivity(options, exclusives)
-        exclusive_options = options & exclusives
+      def check_exclusivity(opts, exclusives)
+        exclusive_options = opts & exclusives
         if exclusive_options.size > 1
           fail Thor::Error, "Error: #{exclusive_options} are mutually exclusive."
         end

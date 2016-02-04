@@ -1,0 +1,12 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Creates all the nacls for Application VPC",
+  "Resources": {
+    "SecurityGroup": {
+      "Type" : "AWS::EC2::SecurityGroup",
+      "Properties" : {
+         "GroupDescription" : "Test security group. Can be deleted2"
+      }
+    }
+  }
+}

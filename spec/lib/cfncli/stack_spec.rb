@@ -1,4 +1,5 @@
 require 'cfncli/stack'
+require 'active_support/hash_with_indifferent_access'
 
 def describe_stacks_resp(status)
   client.stub_data(:describe_stacks, {
@@ -10,14 +11,154 @@ end
 
 describe CfnCli::Stack do
   subject(:stack) do
-    stack = CfnCli::Stack.new('test-stack')
+    stack = CfnCli::Stack.new('test-stack', config)
     stack.stub_responses = true
     stack
   end
 
-  describe 'Stack state detection' do
-    let(:client) {stack.cfn.client}
+  let(:client) {stack.cfn.client}
+  let(:config) { CfnCli::Config::CfnClient.new(0, 1, false) }
 
+  describe '#wait_for_completion' do
+    subject { stack.wait_for_completion }
+
+    before do
+      expect(stack).to receive(:finished?).and_return finished
+    end
+
+    context 'when not timing out' do
+      before do
+        expect(stack).to receive(:succeeded?).and_return success
+      end
+
+      context 'when successful' do
+        let(:finished) { true }
+        let(:success) { true }
+
+        it { is_expected.to be true }
+      end
+
+      context 'when failed' do
+        let(:finished) { true }
+        let(:success) { false }
+
+        it { is_expected.to be false }
+      end
+    end
+
+    context 'when timing out' do
+      let(:finished) { false }
+      let(:success) { true }
+
+      it { is_expected.to be false }
+    end
+  end
+
+  describe '#update' do
+    subject { stack.update({}) }
+
+    context 'when there is no update' do
+      before do
+        expect(client).to receive(:update_stack).and_raise(Aws::CloudFormation::Errors::ValidationError.new(nil, 'No updates are to be performed'))
+      end
+
+      context 'when fail_on_noop is true' do
+        before do
+          expect(stack).to receive(:fail_on_noop?).and_return true
+        end
+
+        it 'is expected to raise a ValidationError' do
+          expect { subject }.to raise_error(Aws::CloudFormation::Errors::ValidationError)
+        end
+      end
+
+      context 'when fail_on_noop is false' do
+        before do
+          expect(stack).to receive(:fail_on_noop?).and_return false
+        end
+
+        it 'is expected to be successful' do
+          subject
+        end
+      end
+    end
+
+    context 'when throwing another ValidationError' do
+      before do
+        expect(client).to receive(:update_stack).and_raise(Aws::CloudFormation::Errors::ValidationError.new(nil, 'Random validation error'))
+      end
+
+      context 'when fail_on_noop is true' do
+        before do
+          expect(stack).to receive(:fail_on_noop?).and_return true
+        end
+
+        it 'is expected to raise a ValidationError' do
+          expect { subject }.to raise_error(Aws::CloudFormation::Errors::ValidationError)
+        end
+      end
+
+      context 'when fail_on_noop is false' do
+        before do
+          expect(stack).to receive(:fail_on_noop?).and_return false
+        end
+
+        it 'is expected to be raise a ValidationError' do
+          expect { subject }.to raise_error(Aws::CloudFormation::Errors::ValidationError)
+        end
+      end
+    end
+  end
+
+=begin
+    subject { stack.wait_for_completion }
+
+    let(:create_stack_resp) do
+      client.stub_data(:create_stack, stack_id: 'test-stack-id')
+    end
+
+    let(:stack_params) do
+      ActiveSupport::HashWithIndifferentAccess.new({
+        stack_name: 'test-stack',
+        template_body: '{}'
+      })
+    end
+
+    before do
+      client.stub_responses(:create_stack, create_stack_resp)
+      client.stub_responses(:describe_stacks, describe_stacks_resp)
+      expect(stack).to receive(:stack).and_return(double Aws::CloudFormation::Stack)
+      expect(stack.stack).to receive(:wait_until_exists).and_return(true)
+      allow(stack.stack).to receive(:stack_id)
+    end
+
+    context 'when successful' do
+      let(:describe_stacks_resp) do
+        client.stub_data(:describe_stacks, stacks: [{
+          stack_id: 'test-stack-id',
+          stack_name: 'test-stack',
+          stack_status: 'CREATE_COMPLETE'
+        }])
+      end
+
+      it { is_expected.to be true }
+    end
+
+    context 'when failed' do
+      let(:describe_stacks_resp) do
+        client.stub_data(:describe_stacks, stacks: [{
+          stack_id: 'test-stack-id',
+          stack_name: 'test-stack',
+          stack_status: 'CREATE_FAILED'
+        }])
+      end
+
+      it { is_expected.to be false }
+    end
+  end
+=end
+
+  describe 'Stack state detection' do
     let(:updated_stack) { describe_stacks_resp('UPDATE_COMPLETE') }
     let(:update_failed_stack) { describe_stacks_resp('UPDATE_FAILED') }
     let(:update_in_progress_stack) { describe_stacks_resp('UPDATE_IN_PROGRESS') }
