@@ -34,6 +34,10 @@ module CfnCli
                   type: :hash,
                   desc: 'Stack parameters. Pass each parameter in the form --parameters key1:value1 key2:value2 or use the @filename syntax to provide a JSON file'
 
+    method_option 'parameters_file',
+                  type: :string,
+                  desc: 'Stack parameters file. It should be a JSON file using the same syntax as for the AWS CLI'
+
     method_option 'disable_rollback',
                   type: :boolean,
                   default: false,
@@ -110,6 +114,15 @@ module CfnCli
       exit res
     end
 
+    method_option 'stack_name',
+                  type: :string,
+                  desc: 'Name or ID of the Cloudformation stack'
+    desc 'events', 'Displays the events for a stack in realtime'
+    def events
+      stack_name = options['stack_name']
+      cfn.events(stack_name)
+    end
+
     no_tasks do
       # Reads an option from a hash and deletes it
       # @param opts [Hash] Hash containing the options
@@ -129,10 +142,12 @@ module CfnCli
         check_exclusivity(opts.keys, ['template_body', 'template_url'])
         check_exclusivity(opts.keys, ['disable_rollback', 'on_failure'])
         check_exclusivity(opts.keys, ['stack_policy_body', 'stack_policy_url'])
+        check_exclusivity(opts.keys, ['parameters', 'parameters_file'])
 
         opts['template_body'] = file_or_content(opts['template_body']) if opts['template_body']
         opts['stack_policy_body'] = file_or_content(opts['stack_policy_body']) if opts['stack_policy_body']
         opts['parameters'] = process_stack_parameters(opts['parameters']) if opts['parameters']
+        opts['parameters'] = process_stack_parameters_file(opts['parameters']) if opts['parameters_file']
 
         opts
       end
@@ -152,8 +167,24 @@ module CfnCli
       # @param str [String] String containing either the content or the filename to read
       def file_or_content(str)
         return str if str.nil?
-        return str unless str.start_with? '@'
-        File.read(str[1..-1])
+        return str unless file_param? str
+
+        content = File.read(str[1..-1])
+        content
+      end
+
+      # Indicates if the parameter is a file (as opposed to a value)
+      # This is indicated by a leading @
+      def file_param?(param)
+        return false unless param.is_a? String
+        param.start_with? '@'
+      end
+
+      # Converts a parameter JSON file to the format expected by CloudFormation
+      # @param filename Path to the JSON file containing the parameters description
+      def process_stack_parameters_file(filename)
+        content = File.read(filename)
+        return CloudFormation.parse_json_params(JSON.parse(content))
       end
 
       # Converts a parameters hash in the format expected by CloudFormation
@@ -161,6 +192,10 @@ module CfnCli
       def process_stack_parameters(parameters)
         return {} unless parameters
 
+        # Returns the content of the file if parameters is a file
+        return file_or_content(parameters) if file_param? parameters
+
+        # Otherwise convert each param to the cfn structure
         parameters.map do |key, value|
           {
             parameter_key: key,

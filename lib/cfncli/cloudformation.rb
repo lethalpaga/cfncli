@@ -38,6 +38,17 @@ module CfnCli
       stack
     end
 
+    # Converts the 'standard' json stack parameters format to the format
+    # expected by the API
+    # (see https://blogs.aws.amazon.com/application-management/post/Tx1A23GYVMVFKFD/Passing-Parameters-to-CloudFormation-Stacks-with-the-AWS-CLI-and-Powershell)
+    def self.parse_json_params(params)
+      params.map do |param|
+        {
+          parameter_key: param['ParameterKey'],
+          parameter_value: param['ParameterValue']
+        }
+      end
+    end
 
     private
 
