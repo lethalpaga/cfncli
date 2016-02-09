@@ -147,7 +147,7 @@ module CfnCli
         opts['template_body'] = file_or_content(opts['template_body']) if opts['template_body']
         opts['stack_policy_body'] = file_or_content(opts['stack_policy_body']) if opts['stack_policy_body']
         opts['parameters'] = process_stack_parameters(opts['parameters']) if opts['parameters']
-        opts['parameters'] = process_stack_parameters_file(opts['parameters']) if opts['parameters_file']
+        opts['parameters'] = process_stack_parameters_file(opts['parameters_file']) if opts['parameters_file']
 
         opts
       end
