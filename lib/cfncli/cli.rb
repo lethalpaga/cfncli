@@ -82,6 +82,12 @@ module CfnCli
                   desc: 'Key-value pairs to associate with this stack'
 
     # Application options
+    method_option 'list_events',
+                  alias: '-l',
+                  type: :boolean,
+                  default: true,
+                  desc: 'List the stack events during the operation'
+
     method_option 'interval',
                   type: :numeric,
                   default: 10,
@@ -101,10 +107,13 @@ module CfnCli
     def apply
       opts = process_params(options)
 
+      stack_name = opts['stack_name']
+     
       interval = consume_option(opts, 'interval')
       timeout = consume_option(opts, 'timeout')
       retries = timeout / interval 
       fail_on_noop = consume_option(opts, 'fail_on_noop')
+      list_events = consume_option(opts, 'list_events')
 
       ENV['CFNCLI_LOG_LEVEL'] = consume_option(opts, 'log_level').to_s
 
@@ -112,6 +121,11 @@ module CfnCli
       res = cfn.create_stack(opts, client_config)
 
       puts "Stack creation #{res ? 'successful' : 'failed'}"
+      if list_events
+        cfn.events(stack_name, client_config) 
+        res = ExitCode::STACK_ERROR unless cfn.stack_successful? stack_name
+      end
+
       exit res
     end
 

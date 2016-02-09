@@ -18,8 +18,7 @@ module CfnCli
     # @param options [Hash] Options for the stack creation 
     #                       (@see http://docs.aws.amazon.com/sdkforruby/api/Aws/CloudFormation/Client.html)
     def create_stack(options, config = nil)
-      stack = create_or_update_stack(options, config)
-      stack.wait_for_completion
+      create_or_update_stack(options, config)
     end
 
     # Creates a stack if it doesn't exist otherwise update it
@@ -43,6 +42,11 @@ module CfnCli
     def events(stack_name, config)
       stack = create_stack_obj(stack_name, config)
       stack.list_events(EventPoller.new)
+    end
+
+    # Returns the stack stack
+    def stack_successful?(stack_name)
+      Stack.new(stack_name).succeeded?
     end
 
     # Converts the 'standard' json stack parameters format to the format
