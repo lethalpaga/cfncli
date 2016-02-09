@@ -7,6 +7,12 @@ require 'cfncli/config'
 module CfnCli
   class Cli < Thor
 
+    module ExitCode
+      OK = 0
+      STACK_ERROR = 1
+      VALIDATION_ERROR = 2
+    end
+
     # Global options
     class_option 'log_level',
                   type: :numeric,
@@ -118,15 +124,19 @@ module CfnCli
       ENV['CFNCLI_LOG_LEVEL'] = consume_option(opts, 'log_level').to_s
 
       client_config = Config::CfnClient.new(interval, retries, fail_on_noop)
-      res = cfn.create_stack(opts, client_config)
 
-      puts "Stack creation #{res ? 'successful' : 'failed'}"
+      res = ExitCode::OK 
+      cfn.create_stack(opts, client_config)
       if list_events
         cfn.events(stack_name, client_config) 
         res = ExitCode::STACK_ERROR unless cfn.stack_successful? stack_name
       end
 
+      puts "Stack creation #{res == 0 ? 'successful' : 'failed'}"
       exit res
+    rescue Aws::CloudFormation::Errors::ValidationError => e
+      puts e.message
+      exit ExitCode::VALIDATION_ERROR
     end
 
     method_option 'stack_name',
