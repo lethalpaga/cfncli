@@ -1,6 +1,8 @@
 require 'cfncli/cfn_client'
 require 'cfncli/logger'
 require 'cfncli/config'
+require 'cfncli/event_streamer'
+
 require 'waiting'
 
 module CfnCli
@@ -73,11 +75,23 @@ module CfnCli
       logger.error "Timed out while waiting for the stack #{inspect} to be created(#{e.message})"
       false
     end
- 
+
+    # List all events in real time
+    # @param poller [CfnCli::Poller] Poller class to display events
+    def list_events(poller)
+      streamer = EventStreamer.new(self)
+      streamer.each_event do |event|
+        poller.event(event)
+      end
+    end
+     
+    # Get the events from the cfn stack
+    def events(next_token)
+      stack.events(next_token)
+    end
 
     # Indicates if the stack is in a finished state
     def finished?
-      logger.debug "Checking if stack exists, stack=#{stack.inspect}, status=#{stack.stack_status unless stack.nil?}"
       return false if stack.nil?
       finished_states.include? stack.stack_status
     end
@@ -85,7 +99,6 @@ module CfnCli
     # Indicates if the stack is in a successful state
     def succeeded?
       res = success_states.include? stack.stack_status
-      logger.debug "Checking if stack #{stack} has succeded (#{res})"
       return false if stack.nil?
       res
     end

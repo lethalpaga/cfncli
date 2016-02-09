@@ -15,6 +15,7 @@ module CfnCli
 
     # Stack options
     method_option 'stack_name',
+                  alias: '-n',
                   type: :string,
                   required: true,
                   desc: 'Cloudformation stack name'
@@ -115,12 +116,27 @@ module CfnCli
     end
 
     method_option 'stack_name',
+                  alias: '-n',
                   type: :string,
+                  required: true,
                   desc: 'Name or ID of the Cloudformation stack'
+    
+    # Application options
+    method_option 'interval',
+                  type: :numeric,
+                  default: 10,
+                  desc: 'Polling interval (in seconds) for the cloudformation events'
+
+    method_option 'timeout',
+                  type: :numeric,
+                  default: 1800,
+                  desc: 'Timeout (in seconds) for the stack event listing'
+
     desc 'events', 'Displays the events for a stack in realtime'
     def events
       stack_name = options['stack_name']
-      cfn.events(stack_name)
+      config = Config::CfnClient.new(options['interval'], options['retries'])
+      cfn.events(stack_name, config)
     end
 
     no_tasks do

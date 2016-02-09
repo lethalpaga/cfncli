@@ -1,6 +1,7 @@
 require 'cfncli/cfn_client'
 require 'cfncli/stack'
 require 'cfncli/logger'
+require 'cfncli/event_poller'
 
 require 'waiting'
 require 'pp'
@@ -36,6 +37,12 @@ module CfnCli
       end
       
       stack
+    end
+
+    # List stack events
+    def events(stack_name, config)
+      stack = create_stack_obj(stack_name, config)
+      stack.list_events(EventPoller.new)
     end
 
     # Converts the 'standard' json stack parameters format to the format
