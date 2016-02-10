@@ -26,8 +26,8 @@ module CfnCli
 
     # Indicates if an event has already been seen
     def seen?(event)
-      res = @seen_events.include? event.id
-      @seen_events << event.id
+      res = seen_events.include? event.id
+      seen_events << event.id
       res
     end
   end
