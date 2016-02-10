@@ -78,8 +78,8 @@ module CfnCli
 
     # List all events in real time
     # @param poller [CfnCli::Poller] Poller class to display events
-    def list_events(poller)
-      streamer = EventStreamer.new(self)
+    def list_events(poller, config = nil)
+      streamer = EventStreamer.new(self, config)
       streamer.each_event do |event|
         poller.event(event)
       end

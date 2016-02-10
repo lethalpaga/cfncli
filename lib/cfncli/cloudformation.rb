@@ -41,7 +41,7 @@ module CfnCli
     # List stack events
     def events(stack_name, config)
       stack = create_stack_obj(stack_name, config)
-      stack.list_events(EventPoller.new)
+      stack.list_events(EventPoller.new, config)
     end
 
     # Returns the stack stack
