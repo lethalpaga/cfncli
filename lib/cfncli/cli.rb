@@ -7,6 +7,12 @@ require 'cfncli/config'
 module CfnCli
   class Cli < Thor
 
+    module ExitCode
+      OK = 0
+      STACK_ERROR = 1
+      VALIDATION_ERROR = 2
+    end
+
     # Global options
     class_option 'log_level',
                   type: :numeric,
@@ -15,6 +21,7 @@ module CfnCli
 
     # Stack options
     method_option 'stack_name',
+                  alias: '-n',
                   type: :string,
                   required: true,
                   desc: 'Cloudformation stack name'
@@ -81,6 +88,12 @@ module CfnCli
                   desc: 'Key-value pairs to associate with this stack'
 
     # Application options
+    method_option 'list_events',
+                  alias: '-l',
+                  type: :boolean,
+                  default: true,
+                  desc: 'List the stack events during the operation'
+
     method_option 'interval',
                   type: :numeric,
                   default: 10,
@@ -100,27 +113,54 @@ module CfnCli
     def apply
       opts = process_params(options)
 
+      stack_name = opts['stack_name']
+     
       interval = consume_option(opts, 'interval')
       timeout = consume_option(opts, 'timeout')
       retries = timeout / interval 
       fail_on_noop = consume_option(opts, 'fail_on_noop')
+      list_events = consume_option(opts, 'list_events')
 
       ENV['CFNCLI_LOG_LEVEL'] = consume_option(opts, 'log_level').to_s
 
       client_config = Config::CfnClient.new(interval, retries, fail_on_noop)
-      res = cfn.create_stack(opts, client_config)
 
-      puts "Stack creation #{res ? 'successful' : 'failed'}"
+      res = ExitCode::OK 
+      cfn.create_stack(opts, client_config)
+      if list_events
+        cfn.events(stack_name, client_config) 
+        res = ExitCode::STACK_ERROR unless cfn.stack_successful? stack_name
+      end
+
+      puts "Stack creation #{res == 0 ? 'successful' : 'failed'}"
       exit res
+    rescue Aws::CloudFormation::Errors::ValidationError => e
+      puts e.message
+      exit ExitCode::VALIDATION_ERROR
     end
 
     method_option 'stack_name',
+                  alias: '-n',
                   type: :string,
+                  required: true,
                   desc: 'Name or ID of the Cloudformation stack'
+    
+    # Application options
+    method_option 'interval',
+                  type: :numeric,
+                  default: 10,
+                  desc: 'Polling interval (in seconds) for the cloudformation events'
+
+    method_option 'timeout',
+                  type: :numeric,
+                  default: 1800,
+                  desc: 'Timeout (in seconds) for the stack event listing'
+
     desc 'events', 'Displays the events for a stack in realtime'
     def events
       stack_name = options['stack_name']
-      cfn.events(stack_name)
+      config = Config::CfnClient.new(options['interval'], options['retries'])
+      cfn.events(stack_name, config)
     end
 
     no_tasks do
