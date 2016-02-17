@@ -55,8 +55,8 @@ module CfnCli
     def self.parse_json_params(params)
       params.map do |param|
         {
-          parameter_key: param['ParameterKey'],
-          parameter_value: param['ParameterValue']
+          parameter_key: param.first.first,
+          parameter_value: param.first.last
         }
       end
     end
