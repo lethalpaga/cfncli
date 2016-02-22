@@ -6,3 +6,9 @@ before_install:
   - gem install bundler -v '~> 1.10'
 script:
   - bundle exec rake spec
+deploy:
+  provider: rubygems
+  api_key:
+    secure: "qDh1BOlLLokI/gU/5HkAmbsAEE5A384IketR+BB4Pal8BsGGnxnbbSUU79pEU94wCHhUFYDnzq
+  on:
+    tags: true
