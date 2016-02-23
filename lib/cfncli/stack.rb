@@ -45,7 +45,7 @@ module CfnCli
     # @param opts Hash containing the options for `create_stack`
     #             (see http://docs.aws.amazon.com/sdkforruby/api/Aws/CloudFormation/Resource.html#create_stack-instance_method)
     def create(opts)
-      logger.debug "Creating a stack (#{opts.inspect})"
+      logger.debug "Creating stack #{stack_name} (#{opts.inspect})"
       @stack = cfn.create_stack(opts)
       stack.wait_until_exists
       @stack_id = stack.stack_id
@@ -55,7 +55,7 @@ module CfnCli
     # @param opts Hash containing the options for `update_stack`
     #             (see http://docs.aws.amazon.com/sdkforruby/api/Aws/CloudFormation/Client.html#update_stack-instance_method)
     def update(opts)
-      logger.debug "Updating a stack (#{opts.inspect})"
+      logger.debug "Updating stack #{stack_name} (#{opts.inspect})"
       resp = cfn.client.update_stack(opts)
       @stack_id = resp.stack_id
     rescue Aws::CloudFormation::Errors::ValidationError => e
