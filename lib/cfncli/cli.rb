@@ -248,7 +248,7 @@ module CfnCli
       # Cloudformation utility object
       def cfn
         @cfn ||= CfnCli::CloudFormation.new
-     end
+      end
     end
   end
 end
