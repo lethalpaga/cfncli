@@ -1,4 +1,7 @@
 # cfncli
+[![Code Climate](https://codeclimate.com/github/lethalpaga/cfncli/badges/gpa.svg)](https://codeclimate.com/github/lethalpaga/cfncli)
+[![Test Coverage](https://codeclimate.com/github/lethalpaga/cfncli/badges/coverage.svg)](https://codeclimate.com/github/lethalpaga/cfncli/coverage)
+
 cfncli is a command line tool that simplifies the creation of Cloudformation stacks.
 It's designed to be a very simple wrapper around the Cloudformation API, but adds the following features compared to
 the AWS cli :
