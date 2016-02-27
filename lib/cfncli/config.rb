@@ -70,9 +70,9 @@ module CfnCli
         args
       end
       
-      def parse_hash(value)
+      def parse_hash(content)
         args = []
-        value.each_pair do |key, value|
+        content.each_pair do |key, value|
           args += ["#{key}:#{value}"]
         end
         
