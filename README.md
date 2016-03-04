@@ -1,4 +1,5 @@
 # cfncli
+[![Gem Version](https://badge.fury.io/rb/cfncli.svg)](https://badge.fury.io/rb/cfncli)
 [![Code Climate](https://codeclimate.com/github/lethalpaga/cfncli/badges/gpa.svg)](https://codeclimate.com/github/lethalpaga/cfncli)
 [![Test Coverage](https://codeclimate.com/github/lethalpaga/cfncli/badges/coverage.svg)](https://codeclimate.com/github/lethalpaga/cfncli/coverage)
 
