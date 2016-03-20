@@ -1,5 +1,4 @@
 #!/usr/bin/env ruby
 require 'cfncli/cli'
 
-args = CfnCli::Config.load_from_file('cfncli.yml').to_thor(ARGV)
-CfnCli::Cli.start(args)
+CfnCli::Cli.start

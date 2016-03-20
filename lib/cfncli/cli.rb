@@ -3,9 +3,11 @@ require 'aws-sdk'
 
 require 'cfncli/cloudformation'
 require 'cfncli/config'
+require 'cfncli/thor_yaml'
 
 module CfnCli
   class Cli < Thor
+    include ThorYamlLoader
 
     module ExitCode
       OK = 0
@@ -18,12 +20,16 @@ module CfnCli
                   type: :numeric,
                   default: 1,
                   desc: 'Log level to display (0=DEBUG, 1=INFO, 2=ERROR, 3=CRITICAL)'
+  
+    class_option 'config_file',
+                  type: :string,
+                  default: 'cfncli.yml',
+                  desc: 'Configuration file'
 
     # Stack options
     method_option 'stack_name',
                   alias: '-n',
                   type: :string,
-                  required: true,
                   desc: 'Cloudformation stack name'
 
     method_option 'template_body',
@@ -114,6 +120,7 @@ module CfnCli
       opts = process_params(options)
 
       stack_name = opts['stack_name']
+      fail ArgumentError, 'stack_name is required' unless stack_name
      
       interval = consume_option(opts, 'interval')
       timeout = consume_option(opts, 'timeout')
@@ -142,10 +149,9 @@ module CfnCli
     method_option 'stack_name',
                   alias: '-n',
                   type: :string,
-                  required: true,
                   desc: 'Name or ID of the Cloudformation stack'
-    
-    # Application options
+
+    # Application options.
     method_option 'interval',
                   type: :numeric,
                   default: 10,
@@ -159,6 +165,9 @@ module CfnCli
     desc 'events', 'Displays the events for a stack in realtime'
     def events
       stack_name = options['stack_name']
+      
+      fail ArgumentError, 'stack_name is required' unless stack_name
+      
       config = Config::CfnClient.new(options['interval'], options['retries'])
       cfn.events(stack_name, config)
     end
