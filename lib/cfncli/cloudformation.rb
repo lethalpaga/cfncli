@@ -26,7 +26,6 @@ module CfnCli
       opts = process_params(options.dup)
       
       stack_name = opts['stack_name']
-      
       stack = create_stack_obj(stack_name, config)
       
       if stack.exists?
@@ -37,14 +36,28 @@ module CfnCli
       
       stack
     end
+    
+    # Creates or update the stack and list events
+    def apply_and_list_events(options, config = nil)
+      # Create/update the stack
+      stack = create_or_update_stack(options, config)
+
+      # Consume existing events
+      poller = EventPoller.new
+      streamer = EventStreamer.new(stack, config)
+      streamer.list_events
+      
+      # List new events
+      stack.list_events(poller, streamer, config)
+    end
 
     # List stack events
     def events(stack_name, config)
       stack = create_stack_obj(stack_name, config)
-      stack.list_events(EventPoller.new, config)
+      stack.list_events(EventPoller.new, EventStreamer.new(stack, config), config)
     end
 
-    # Returns the stack stack
+    # Returns the stack status
     def stack_successful?(stack_name)
       Stack.new(stack_name).succeeded?
     end

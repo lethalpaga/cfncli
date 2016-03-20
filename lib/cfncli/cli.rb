@@ -133,10 +133,11 @@ module CfnCli
       client_config = Config::CfnClient.new(interval, retries, fail_on_noop)
 
       res = ExitCode::OK 
-      cfn.create_stack(opts, client_config)
       if list_events
-        cfn.events(stack_name, client_config) 
+        cfn.apply_and_list_events(stack_name, client_config) 
         res = ExitCode::STACK_ERROR unless cfn.stack_successful? stack_name
+      else
+        cfn.create_stack(opts, client_config)
       end
 
       puts "Stack creation #{res == 0 ? 'successful' : 'failed'}"

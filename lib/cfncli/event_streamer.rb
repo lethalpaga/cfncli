@@ -18,13 +18,17 @@ module CfnCli
     # @yields [CfnEvent] Events for the stack
     def each_event
       Waiting.wait(interval: config.interval, max_attempts: config.retries) do |waiter|
-        @next_token = stack.events(@next_token).each do |event|
-          yield event unless seen?(event)
-        end
+        list_events
 
         waiter.done if stack.finished?
       end
     end
+    
+    def list_events
+      @next_token = stack.events(@next_token).each do |event|
+        yield event unless seen?(event)
+      end
+   end
 
     private
 
