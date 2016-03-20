@@ -110,54 +110,6 @@ describe CfnCli::Stack do
     end
   end
 
-=begin
-    subject { stack.wait_for_completion }
-
-    let(:create_stack_resp) do
-      client.stub_data(:create_stack, stack_id: 'test-stack-id')
-    end
-
-    let(:stack_params) do
-      ActiveSupport::HashWithIndifferentAccess.new({
-        stack_name: 'test-stack',
-        template_body: '{}'
-      })
-    end
-
-    before do
-      client.stub_responses(:create_stack, create_stack_resp)
-      client.stub_responses(:describe_stacks, describe_stacks_resp)
-      expect(stack).to receive(:stack).and_return(double Aws::CloudFormation::Stack)
-      expect(stack.stack).to receive(:wait_until_exists).and_return(true)
-      allow(stack.stack).to receive(:stack_id)
-    end
-
-    context 'when successful' do
-      let(:describe_stacks_resp) do
-        client.stub_data(:describe_stacks, stacks: [{
-          stack_id: 'test-stack-id',
-          stack_name: 'test-stack',
-          stack_status: 'CREATE_COMPLETE'
-        }])
-      end
-
-      it { is_expected.to be true }
-    end
-
-    context 'when failed' do
-      let(:describe_stacks_resp) do
-        client.stub_data(:describe_stacks, stacks: [{
-          stack_id: 'test-stack-id',
-          stack_name: 'test-stack',
-          stack_status: 'CREATE_FAILED'
-        }])
-      end
-
-      it { is_expected.to be false }
-    end
-  end
-=end
-
   describe 'Stack state detection' do
     let(:updated_stack) { describe_stacks_resp('UPDATE_COMPLETE') }
     let(:update_failed_stack) { describe_stacks_resp('UPDATE_FAILED') }

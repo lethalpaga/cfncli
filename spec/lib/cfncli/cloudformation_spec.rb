@@ -34,52 +34,24 @@ describe CfnCli::CloudFormation do
       end
     end
   end
+  
+  describe '#delete_stack' do
+    subject { cfn.delete_stack('stack_name', {}) }
 
-=begin
-  let(:stack_params) do
-    ActiveSupport::HashWithIndifferentAccess.new({
-      stack_name: 'test-stack',
-      template_body: '{}'
-    })
-  end
-
-  describe '#create_stack' do
-    subject { cfn.create_stack(stack_params) }
-
-    let(:client) {cfn.cfn.client}
-    let(:create_stack_resp) do
-      client.stub_data(:create_stack, stack_id: 'test-stack-id')
-    end
+    let(:stack) { double CfnCli::Stack }
 
     before do
-      client.stub_responses(:create_stack, create_stack_resp)
-      client.stub_responses(:describe_stacks, describe_stacks_resp)
-      expect(cfn.cfn).to receive(:wait_until_exists).and_return(true)
+      expect(cfn).to receive(:create_stack_obj).and_return(stack)
+      allow(stack).to receive(:exists?).and_return(exists)
     end
 
-    context 'when successful' do
-      let(:describe_stacks_resp) do
-        client.stub_data(:describe_stacks, stacks: [{
-          stack_id: 'test-stack-id',
-          stack_name: 'test-stack',
-          stack_status: 'CREATE_COMPLETE'
-        }])
+    context 'when the stack exists' do
+      let(:exists) { true }
+      it 'is expected to call stack.delete' do
+        expect(stack).to receive(:delete).with({})
+        expect(stack).to receive(:events).with('stack_name', {})
+        subject
       end
-
-      it { is_expected.to be true }
-    end
-
-    context 'when failed' do
-      let(:describe_stacks_resp) do
-        client.stub_data(:describe_stacks, stacks: [{
-          stack_id: 'test-stack-id',
-          stack_name: 'test-stack',
-          stack_status: 'CREATE_FAILED'
-        }])
-      end
-
-      it { is_expected.to be false }
     end
   end
-=end
 end

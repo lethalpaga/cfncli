@@ -57,6 +57,12 @@ module CfnCli
       stack.list_events(EventPoller.new, EventStreamer.new(stack, config), config)
     end
 
+    # Delete a stack
+    def delete_stack(stack_name, config)
+      stack = create_stack_obj(stack_name, config)
+      stack.delete(config)
+      stack.events(stack_name, config)
+    end
     # Returns the stack status
     def stack_successful?(stack_name)
       Stack.new(stack_name).succeeded?

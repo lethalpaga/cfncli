@@ -172,6 +172,32 @@ module CfnCli
       config = Config::CfnClient.new(options['interval'], options['retries'])
       cfn.events(stack_name, config)
     end
+    
+    method_option 'stack_name',
+                  alias: '-n',
+                  type: :string,
+                  desc: 'Name or ID of the Cloudformation stack'
+
+    # Application options.
+    method_option 'interval',
+                  type: :numeric,
+                  default: 10,
+                  desc: 'Polling interval (in seconds) for the cloudformation events'
+
+    method_option 'timeout',
+                  type: :numeric,
+                  default: 1800,
+                  desc: 'Timeout (in seconds) for the stack event listing'
+
+    desc 'delete', 'Deletes a stack'
+    def delete
+      stack_name = options['stack_name']
+      
+      fail ArgumentError, 'stack_name is required' unless stack_name
+      
+      config = Config::CfnClient.new(options['interval'], options['retries'])
+      cfn.delete_stack(stack_name, config)
+    end
 
     no_tasks do
       # Reads an option from a hash and deletes it
