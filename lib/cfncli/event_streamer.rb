@@ -26,7 +26,7 @@ module CfnCli
     
     def list_events
       @next_token = stack.events(@next_token).each do |event|
-        yield event unless seen?(event)
+        yield event unless seen?(event) if block_given?
       end
    end
 

@@ -67,10 +67,9 @@ module CfnCli
     end
   
     # Deletes an existing stack
-    def delete(opts)
-      logger.debug "Deleting stack #{stack_name}"
-      resp = cfn.client.delete_stack(opts)
-      @stack_id = resp.stack_id
+    def delete(opts, config)
+      logger.debug "Deleting stack #{opts.inspect}"
+      cfn.client.delete_stack(opts)
     end
     
     # Waits for a stack to be in a finished state

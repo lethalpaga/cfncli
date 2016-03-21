@@ -122,11 +122,10 @@ module CfnCli
       stack_name = opts['stack_name']
       fail ArgumentError, 'stack_name is required' unless stack_name
      
-      interval = consume_option(opts, 'interval')
-      timeout = consume_option(opts, 'timeout')
       retries = timeout / interval 
       fail_on_noop = consume_option(opts, 'fail_on_noop')
       list_events = consume_option(opts, 'list_events')
+      config_file = consume_option(opts, 'config_file')
 
       ENV['CFNCLI_LOG_LEVEL'] = consume_option(opts, 'log_level').to_s
 
@@ -134,7 +133,7 @@ module CfnCli
 
       res = ExitCode::OK 
       if list_events
-        cfn.apply_and_list_events(stack_name, client_config) 
+        cfn.apply_and_list_events(opts, client_config) 
         res = ExitCode::STACK_ERROR unless cfn.stack_successful? stack_name
       else
         cfn.create_stack(opts, client_config)
@@ -191,12 +190,19 @@ module CfnCli
 
     desc 'delete', 'Deletes a stack'
     def delete
-      stack_name = options['stack_name']
+      opts = options.dup
+      stack_name = opts['stack_name']
       
       fail ArgumentError, 'stack_name is required' unless stack_name
       
-      config = Config::CfnClient.new(options['interval'], options['retries'])
-      cfn.delete_stack(stack_name, config)
+      interval = consume_option(opts, 'interval')
+      timeout = consume_option(opts, 'timeout')
+      consume_option(opts, 'log_level')
+      consume_option(opts, 'config_file')
+      retries = timeout / interval
+
+      config = Config::CfnClient.new(interval, retries)
+      cfn.delete_stack(opts, config)
     end
 
     no_tasks do
