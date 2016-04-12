@@ -4,10 +4,13 @@ require 'aws-sdk'
 require 'cfncli/cloudformation'
 require 'cfncli/config'
 require 'cfncli/thor_yaml'
+require 'cfncli/logger'
+require 'cfncli/version'
 
 module CfnCli
   class Cli < Thor
     include ThorYamlLoader
+    include Loggable
 
     module ExitCode
       OK = 0
@@ -121,13 +124,17 @@ module CfnCli
 
       stack_name = opts['stack_name']
       fail ArgumentError, 'stack_name is required' unless stack_name
-     
-      retries = timeout / interval 
+    
+      timeout = consume_option(opts, 'timeout')
+      interval = consume_option(opts, 'interval')
+      retries = timeout / interval
       fail_on_noop = consume_option(opts, 'fail_on_noop')
       list_events = consume_option(opts, 'list_events')
       config_file = consume_option(opts, 'config_file')
 
       ENV['CFNCLI_LOG_LEVEL'] = consume_option(opts, 'log_level').to_s
+
+      logger.debug "Apply parameters: #{options.inspect}"
 
       client_config = Config::CfnClient.new(interval, retries, fail_on_noop)
 
@@ -173,7 +180,7 @@ module CfnCli
     end
     
     method_option 'stack_name',
-                  alias: '-n',
+                  aliases: ['-n'],
                   type: :string,
                   desc: 'Name or ID of the Cloudformation stack'
 
@@ -203,6 +210,18 @@ module CfnCli
 
       config = Config::CfnClient.new(interval, retries)
       cfn.delete_stack(opts, config)
+    end
+
+    method_option 'verbose',
+                  aliases: ['-v'],
+                  type: :boolean,
+                  default: false,
+                  desc: 'Displays the full path to the command'
+    desc 'version', 'Display the version'
+    def version
+      program_name = $PROGRAM_NAME
+      program_name = File.basename program_name unless options['verbose']
+      puts "#{program_name} v#{CfnCli::VERSION}"
     end
 
     no_tasks do
