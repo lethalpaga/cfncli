@@ -16,15 +16,15 @@ module CfnCli
     # Wait for events. This will exit when the
     # stack reaches a finished state
     # @yields [CfnEvent] Events for the stack
-    def each_event
+    def each_event(&block)
       Waiting.wait(interval: config.interval, max_attempts: config.retries) do |waiter|
-        list_events
+        list_events(&block)
 
         waiter.done if stack.finished?
       end
     end
-    
-    def list_events
+
+    def list_events(&block)
       @next_token = stack.events(@next_token).each do |event|
         yield event unless seen?(event) if block_given?
       end
