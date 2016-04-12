@@ -30,6 +30,11 @@ module CfnCli
       end
    end
 
+    # Mark all the existing events as 'seen'
+    def reset_events
+      list_events do; end
+    end
+
     private
 
     attr_accessor :seen_events

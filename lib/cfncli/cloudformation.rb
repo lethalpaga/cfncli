@@ -47,7 +47,7 @@ module CfnCli
       logger.debug "Creating Streamer"
       poller = EventPoller.new
       streamer = EventStreamer.new(stack, config)
-      streamer.list_events
+      streamer.reset_events
 
       # List new events
       logger.debug "Listing events"
