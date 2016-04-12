@@ -15,7 +15,7 @@ module CfnCli
     attr_reader :stack_name
 
     class StackNotFoundError < StandardError; end
-    
+
     def initialize(stack_name, config = nil)
       @stack = nil
       @stack_id = nil
@@ -65,13 +65,13 @@ module CfnCli
         raise e
       end
     end
-  
+
     # Deletes an existing stack
     def delete(opts, config)
       logger.debug "Deleting stack #{opts.inspect}"
       cfn.client.delete_stack(opts)
     end
-    
+
     # Waits for a stack to be in a finished state
     # @return A boolean indicating if the operation was succesful
     def wait_for_completion
@@ -92,7 +92,7 @@ module CfnCli
         poller.event(event)
       end
     end
-     
+
     # Get the events from the cfn stack
     def events(next_token)
       stack.events(next_token)

@@ -15,7 +15,7 @@ module CfnCli
     end
 
     # Creates a stack and wait for the creation to be finished
-    # @param options [Hash] Options for the stack creation 
+    # @param options [Hash] Options for the stack creation
     #                       (@see http://docs.aws.amazon.com/sdkforruby/api/Aws/CloudFormation/Client.html)
     def create_stack(options, config = nil)
       create_or_update_stack(options, config)
@@ -24,36 +24,40 @@ module CfnCli
     # Creates a stack if it doesn't exist otherwise update it
     def create_or_update_stack(options, config = nil)
       opts = process_params(options.dup)
-      
+
       stack_name = opts['stack_name']
       stack = create_stack_obj(stack_name, config)
-      
+
       if stack.exists?
         stack.update(opts)
       else
         stack.create(opts)
       end
-      
+
       stack
     end
-    
+
     # Creates or update the stack and list events
     def apply_and_list_events(options, config = nil)
       # Create/update the stack
+      logger.debug "Creating stack #{options['stack_name']}"
       stack = create_or_update_stack(options, config)
 
       # Consume existing events
+      logger.debug "Creating Streamer"
       poller = EventPoller.new
       streamer = EventStreamer.new(stack, config)
       streamer.list_events
-      
+
       # List new events
+      logger.debug "Listing events"
       stack.list_events(poller, streamer, config)
     end
 
     # List stack events
     def events(stack_name, config)
       stack = create_stack_obj(stack_name, config)
+      logger.debug "Listing events for stack #{stack.stack_name}"
       stack.list_events(EventPoller.new, EventStreamer.new(stack, config), config)
     end
 
