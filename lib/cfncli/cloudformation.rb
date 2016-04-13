@@ -43,30 +43,31 @@ module CfnCli
       logger.debug "Creating stack #{options['stack_name']}"
       stack = create_or_update_stack(options, config)
 
-      # Consume existing events
-      logger.debug "Creating Streamer"
-      poller = EventPoller.new
-      streamer = EventStreamer.new(stack, config)
-      streamer.reset_events
-
-      # List new events
-      logger.debug "Listing events"
-      stack.list_events(poller, streamer, config)
+      events(stack.stack_id)
     end
 
     # List stack events
-    def events(stack_name, config)
-      stack = create_stack_obj(stack_name, config)
+    def events(stack_or_name, reset_events = true, poller = nil, streamer = nil, config = nil)
+      stack = stack_or_name
+      stack = create_stack_obj(stack_or_name, config) unless stack_or_name.is_a? CfnCli::Stack
+
+      poller ||= EventPoller.new
+      streamer ||= EventStreamer.new(stack, config)
+
+      streamer.reset_events if reset_events
+
       logger.debug "Listing events for stack #{stack.stack_name}"
-      stack.list_events(EventPoller.new, EventStreamer.new(stack, config), config)
+      stack.list_events(poller, streamer, config)
     end
 
     # Delete a stack
     def delete_stack(options, config)
-      stack = create_stack_obj(options, config)
+      stack = create_stack_obj(options['stack_name'], config)
+      options['stack_name'] = stack.stack_id
       stack.delete(options, config)
-      stack.events(options, config)
+      events(stack.stack_id, config)
     end
+
     # Returns the stack status
     def stack_successful?(stack_name)
       Stack.new(stack_name).succeeded?
@@ -89,7 +90,9 @@ module CfnCli
     # Creates a new stack object
     # Mainly useful to mock it in unit tests
     def create_stack_obj(stack_name, config)
-      CfnCli::Stack.new(stack_name, config)
+      stack = CfnCli::Stack.new(stack_name, config)
+      stack.fetch_stack_id if stack.exists?
+      stack
     end
 
     # Process the parameters

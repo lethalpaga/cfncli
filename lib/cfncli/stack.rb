@@ -69,7 +69,9 @@ module CfnCli
     # Deletes an existing stack
     def delete(opts, config)
       logger.debug "Deleting stack #{opts.inspect}"
-      cfn.client.delete_stack(opts)
+      # Always use the real stack ID as the stack won't be available once deleted
+      id = fetch_stack_id
+      cfn.client.delete_stack(stack_name: id)
     end
 
     # Waits for a stack to be in a finished state
@@ -115,6 +117,13 @@ module CfnCli
     def in_progress?
       return false if stack.nil?
       transitive_states.include? stack.stack_status
+    end
+
+    # Gets stack id from the cfn API
+    def fetch_stack_id
+      @stack = cfn.stack(stack_id)
+      @stack_id = @stack.stack_id
+      @stack_id
     end
 
     private
