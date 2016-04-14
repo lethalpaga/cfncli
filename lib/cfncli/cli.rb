@@ -60,10 +60,6 @@ module CfnCli
                   desc: 'Disable rollbacks in case of a stack update failure'\
                         ' This is mutually exclusive with on_failure.'
 
-    method_option 'timeout_in_minutes',
-                  type: :boolean,
-                  desc: 'Stack creation timeout (in minutes)'
-
     method_option 'notification_arns',
                   type: :array,
                   desc: 'List of SNS notification ARNs to publish stack related events'
