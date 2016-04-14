@@ -43,11 +43,11 @@ module CfnCli
       logger.debug "Creating stack #{options['stack_name']}"
       stack = create_or_update_stack(options, config)
 
-      events(stack.stack_id)
+      events(stack.stack_id, config)
     end
 
     # List stack events
-    def events(stack_or_name, reset_events = true, poller = nil, streamer = nil, config = nil)
+    def events(stack_or_name, config = nil, reset_events = true, poller = nil, streamer = nil)
       stack = stack_or_name
       stack = create_stack_obj(stack_or_name, config) unless stack_or_name.is_a? CfnCli::Stack
 
