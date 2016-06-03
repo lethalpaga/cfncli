@@ -12,9 +12,6 @@ module CfnCli
     include CfnCli::CfnStates
     include Loggable
 
-    RESOURCE_CREATE_INITIATED = 'Resource creation Initiated'.freeze
-    AWS_STACK_RESOURCE = 'AWS::CloudFormation::Stack'.freeze
-
     attr_reader :stack_name
     attr_reader :child_stacks
 
@@ -96,15 +93,8 @@ module CfnCli
     def list_events(poller, streamer = nil, config = nil)
       streamer ||= EventStreamer.new(self, config)
       streamer.each_event do |event|
-        #TODO: This shouldn't be tied to logging logic
-        if Event.new(event).in_progress? &&
-           event.resource_type == AWS_STACK_RESOURCE &&
-           event.resource_status_reason == RESOURCE_CREATE_INITIATED &&
-           event.stack_id != @stack_id
-           child_stack = new event.physical_resource_id, config
-           @child_stacks << child_stack
-           logger.debug "Listing events for child stack #{stack.stack_name}"
-           child_stack.list_events(poller, streamer, config)
+        if Event.new(event).child_stack_create_event?
+          track_child_stack event.physical_resource_id, event.logical_resource_id
         end
         poller.event(event)
       end
@@ -147,6 +137,14 @@ module CfnCli
     def fetch_stack
       @stack = cfn.stack(stack_id)
       @stack
+    end
+
+    def track_child_stack(child_stack_id, logical_id)
+      child_stack = Stack.new child_stack_id, @config
+      @child_stacks << child_stack
+      child_poller = EventPoller.new logical_id
+      logger.debug "Listing events for child stack #{stack.stack_name}"
+      child_stack.list_events child_poller, nil, @config
     end
   end
 end
