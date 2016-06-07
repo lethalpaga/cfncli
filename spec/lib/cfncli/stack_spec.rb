@@ -143,13 +143,13 @@ describe CfnCli::Stack do
 
         it { is_expected.to be true }
       end
-      
+
       context 'when in a transition state' do
         let(:stubbed_response) { update_in_progress_stack }
 
         it { is_expected.to be false }
       end
-      
+
       context 'when in a failed state' do
         let(:stubbed_response) { update_failed_stack }
 
@@ -165,13 +165,13 @@ describe CfnCli::Stack do
 
         it { is_expected.to be false }
       end
-      
+
       context 'when in a transition state' do
         let(:stubbed_response) { update_in_progress_stack }
 
         it { is_expected.to be true }
       end
-      
+
       context 'when in a failed state' do
         let(:stubbed_response) { update_failed_stack }
 
@@ -187,17 +187,54 @@ describe CfnCli::Stack do
 
         it { is_expected.to be false }
       end
-      
+
       context 'when in a transition state' do
         let(:stubbed_response) { update_in_progress_stack }
 
         it { is_expected.to be false }
       end
-      
+
       context 'when in a failed state' do
         let(:stubbed_response) { update_failed_stack }
 
         it { is_expected.to be true }
+      end
+    end
+  end
+
+  describe '#list_events' do
+    let(:streamer) { double('CfnCli::EventStreamer') }
+    let(:poller) { double('CfnCli::EventPoller') }
+    let(:test_event) { double('AWS::CloudFormation::Event') }
+    let(:cli_event) { double('CfnCli::Event') }
+    before do
+      allow(streamer).to receive(:each_event) do |&block|
+        block.call(test_event)
+      end
+      allow(poller).to receive(:event).with test_event
+      allow(CfnCli::Event).to receive(:new).with(test_event).and_return cli_event
+      allow(cli_event).to receive(:child_stack_create_event?).and_return false
+    end
+
+    it 'passes a block to each_event for streaming' do
+      expect(streamer).to receive(:each_event)
+      subject.list_events poller, streamer
+    end
+
+    context 'each_event block' do
+      let(:resource_id) { 'FAKE_ID' }
+      let(:logical_id) { 'TEST_ID' }
+      it 'detects and tracks child stacks if event is a child stack creation' do
+        expect(test_event).to receive(:physical_resource_id).and_return resource_id
+        expect(test_event).to receive(:logical_resource_id).and_return logical_id
+        expect(cli_event).to receive(:child_stack_create_event?).and_return true
+        expect(subject).to receive(:track_child_stack).with resource_id, logical_id
+        subject.list_events poller, streamer
+      end
+
+      it 'sends the event to the poller' do
+        expect(poller).to receive(:event).with test_event
+        subject.list_events poller, streamer
       end
     end
   end
@@ -270,7 +307,7 @@ describe CfnCli::Stack do
 
   describe '#failed_states' do
      subject { stack.failed_states }
-     
+
      it { is_expected.to include 'ROLLBACK_FAILED' }
      it { is_expected.to include 'ROLLBACK_COMPLETE' }
      it { is_expected.to include 'UPDATE_ROLLBACK_FAILED' }
