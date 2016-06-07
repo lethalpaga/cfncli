@@ -2,6 +2,7 @@ require 'cfncli/cfn_client'
 require 'cfncli/logger'
 require 'cfncli/config'
 require 'cfncli/event_streamer'
+require 'cfncli/event'
 require 'cfncli/states'
 
 require 'waiting'
