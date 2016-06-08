@@ -1,5 +1,7 @@
 module CfnCli
   class EventStreamer
+    require 'cfncli/config'
+
     attr_reader :stack
     attr_reader :config
 
@@ -25,7 +27,7 @@ module CfnCli
     end
 
     def list_events(&block)
-      @next_token = stack.events(@next_token).each do |event|
+      @next_token = stack.events(@next_token).sort { |a, b| a.timestamp <=> b.timestamp }.each do |event|
         yield event unless seen?(event) if block_given?
       end
    end

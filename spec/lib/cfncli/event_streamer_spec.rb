@@ -1,4 +1,5 @@
 require 'cfncli/event_streamer'
+require 'cfncli/event'
 
 describe CfnCli::EventStreamer do
   subject(:streamer) { CfnCli::EventStreamer.new(nil) }
