@@ -4,7 +4,8 @@ require 'cfncli/config'
 require 'cfncli/event_streamer'
 require 'cfncli/event'
 require 'cfncli/states'
-
+require 'thread'
+require 'concurrent/array'
 require 'waiting'
 
 module CfnCli
@@ -23,7 +24,7 @@ module CfnCli
       @stack_id = nil
       @stack_name = stack_name
       @config = config || default_config
-      @child_stacks = []
+      @child_stacks = Concurrent::Array.new
     end
 
     def default_config
@@ -91,13 +92,15 @@ module CfnCli
 
     # List all events in real time
     # @param poller [CfnCli::Poller] Poller class to display events
-    def list_events(poller, streamer = nil, config = nil)
-      streamer ||= EventStreamer.new(self, config)
-      streamer.each_event do |event|
-        if Event.new(event).child_stack_create_event?
-          track_child_stack event.physical_resource_id, event.logical_resource_id
+    def list_events(poller, streamer = nil, config = nil, event_prefix = nil)
+      Thread.new do
+        streamer ||= EventStreamer.new(self, config)
+        streamer.each_event do |event|
+          if Event.new(event).child_stack_create_event?
+            track_child_stack(event.physical_resource_id, event.logical_resource_id, poller)
+          end
+          poller.event(event, event_prefix)
         end
-        poller.event(event)
       end
     end
 
@@ -140,12 +143,11 @@ module CfnCli
       @stack
     end
 
-    def track_child_stack(child_stack_id, logical_id)
+    def track_child_stack(child_stack_id, logical_id, poller)
       child_stack = Stack.new child_stack_id, @config
       @child_stacks << child_stack
-      child_poller = EventPoller.new logical_id
       logger.debug "Listing events for child stack #{stack.stack_name}"
-      child_stack.list_events child_poller, nil, @config
+      child_stack.list_events poller, nil, @config, logical_id
     end
   end
 end

@@ -1,23 +1,26 @@
 require 'colorize'
 require 'cfncli/event'
+require 'thread'
 
 module CfnCli
   class EventPoller
-    attr_reader :message_prefix
-    def initialize(message_prefix = nil)
-      @message_prefix = message_prefix
+
+    def initialize
+      @mutex = Mutex.new
     end
 
-    def event(event)
-      colorize Event.new(event)
+    def event(event, prefix = nil)
+      colorize Event.new(event), prefix
     end
 
-    def colorize(event)
-      puts add_prefix(event.to_s).colorize(event.color)
+    def colorize(event, prefix = nil)
+      @mutex.synchronize do
+        puts add_prefix(event.to_s, prefix).colorize(event.color)
+      end
     end
 
-    def add_prefix(message)
-      message = "#{message_prefix} - #{message}" unless message_prefix.nil?
+    def add_prefix(message, prefix = nil)
+      message = "#{prefix} - #{message}" unless prefix.nil?
       message
     end
   end

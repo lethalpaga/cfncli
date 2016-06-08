@@ -44,6 +44,9 @@ module CfnCli
       stack = create_or_update_stack(options, config)
 
       events(stack.stack_id, config)
+      Waiting.wait(interval: config.interval || default_config.interval, max_attempts: config.retries || default_config.retries) do |waiter|
+        waiter.done if stack.finished?
+      end  
     end
 
     # List stack events
@@ -83,6 +86,10 @@ module CfnCli
           parameter_value: param.first.last
         }
       end
+    end
+
+    def default_config
+      Config::CfnClient.new
     end
 
     private

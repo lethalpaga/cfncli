@@ -211,9 +211,12 @@ describe CfnCli::Stack do
       allow(streamer).to receive(:each_event) do |&block|
         block.call(test_event)
       end
-      allow(poller).to receive(:event).with test_event
+      allow(poller).to receive(:event).with test_event, nil
       allow(CfnCli::Event).to receive(:new).with(test_event).and_return cli_event
       allow(cli_event).to receive(:child_stack_create_event?).and_return false
+      allow(Thread).to receive(:new) do |&block|
+        block.call
+      end
     end
 
     it 'passes a block to each_event for streaming' do
@@ -228,12 +231,12 @@ describe CfnCli::Stack do
         expect(test_event).to receive(:physical_resource_id).and_return resource_id
         expect(test_event).to receive(:logical_resource_id).and_return logical_id
         expect(cli_event).to receive(:child_stack_create_event?).and_return true
-        expect(subject).to receive(:track_child_stack).with resource_id, logical_id
+        expect(subject).to receive(:track_child_stack).with resource_id, logical_id, poller
         subject.list_events poller, streamer
       end
 
       it 'sends the event to the poller' do
-        expect(poller).to receive(:event).with test_event
+        expect(poller).to receive(:event).with test_event, nil
         subject.list_events poller, streamer
       end
     end
