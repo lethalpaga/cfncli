@@ -93,7 +93,7 @@ module CfnCli
     # List all events in real time
     # @param poller [CfnCli::Poller] Poller class to display events
     def list_events(poller, streamer = nil, config = nil, event_prefix = nil)
-      Thread.new do
+      @event_listing_thread = Thread.new do
         streamer ||= EventStreamer.new(self, config)
         streamer.each_event do |event|
           if Event.new(event).child_stack_create_event?
@@ -109,10 +109,15 @@ module CfnCli
       stack.events(next_token)
     end
 
+    # Is this stack currently listing events
+    def listing_events?
+      !@event_listing_thread.nil? && @event_listing_thread.alive?
+    end
+
     # Indicates if the stack is in a finished state
     def finished?
       return false if stack.nil?
-      finished_states.include? stack.stack_status
+      finished_states.include?(stack.stack_status)
     end
 
     # Indicates if the stack is in a successful state

@@ -43,9 +43,9 @@ module CfnCli
       logger.debug "Creating stack #{options['stack_name']}"
       stack = create_or_update_stack(options, config)
 
-      events(stack.stack_id, config)
+      events(stack, config)
       Waiting.wait(interval: config.interval || default_config.interval, max_attempts: config.retries || default_config.retries) do |waiter|
-        waiter.done if stack.finished?
+        waiter.done if stack.finished? && !stack.listing_events?
       end  
     end
 
