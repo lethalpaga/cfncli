@@ -6,6 +6,9 @@ module CfnCli
 
     attr_reader :event
 
+    RESOURCE_CREATE_INITIATED = 'Resource creation Initiated'.freeze
+    AWS_STACK_RESOURCE = 'AWS::CloudFormation::Stack'.freeze
+
     def initialize(event)
       @event = event
     end
@@ -18,6 +21,14 @@ module CfnCli
       return :green if succeeded?
       return :yellow if in_progress?
       return :red if failed?
+    end
+
+    # Check if the current event has the signature of a child stack creation
+    def child_stack_create_event?
+      return false unless in_progress?
+      return false unless event.resource_type == AWS_STACK_RESOURCE
+      return false unless event.resource_status_reason == RESOURCE_CREATE_INITIATED
+      true
     end
 
     def to_s
