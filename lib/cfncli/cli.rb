@@ -23,7 +23,7 @@ module CfnCli
                   type: :numeric,
                   default: 1,
                   desc: 'Log level to display (0=DEBUG, 1=INFO, 2=ERROR, 3=CRITICAL)'
-  
+
     class_option 'config_file',
                   type: :string,
                   default: 'cfncli.yml',
@@ -81,7 +81,7 @@ module CfnCli
 
     method_option 'stack_policy_body',
                   type: :string,
-                  desc: 'JSON String containing the stack policy body. The @filename syntax can be used.' 
+                  desc: 'JSON String containing the stack policy body. The @filename syntax can be used.'
 
     method_option 'stack_policy_url',
                   type: :string,
@@ -120,7 +120,7 @@ module CfnCli
 
       stack_name = opts['stack_name']
       fail ArgumentError, 'stack_name is required' unless stack_name
-    
+
       timeout = consume_option(opts, 'timeout')
       interval = consume_option(opts, 'interval')
       retries = timeout / interval
@@ -134,15 +134,15 @@ module CfnCli
 
       client_config = Config::CfnClient.new(interval, retries, fail_on_noop)
 
-      res = ExitCode::OK 
+      res = ExitCode::OK
       if list_events
-        cfn.apply_and_list_events(opts, client_config) 
+        cfn.apply_and_list_events(opts, client_config)
         res = ExitCode::STACK_ERROR unless cfn.stack_successful? stack_name
       else
         cfn.create_stack(opts, client_config)
       end
 
-      puts "Stack creation #{res == 0 ? 'successful' : 'failed'}"
+      puts "Stack #{stack_name} creation #{res == 0 ? 'successful' : 'failed'}"
       exit res
     rescue Aws::CloudFormation::Errors::ValidationError => e
       puts e.message
@@ -168,13 +168,13 @@ module CfnCli
     desc 'events', 'Displays the events for a stack in realtime'
     def events
       stack_name = options['stack_name']
-      
+
       fail ArgumentError, 'stack_name is required' unless stack_name
-      
+
       config = Config::CfnClient.new(options['interval'], options['retries'])
       cfn.events(stack_name, config)
     end
-    
+
     method_option 'stack_name',
                   aliases: ['-n'],
                   type: :string,
@@ -195,9 +195,9 @@ module CfnCli
     def delete
       opts = options.dup
       stack_name = opts['stack_name']
-      
+
       fail ArgumentError, 'stack_name is required' unless stack_name
-      
+
       interval = consume_option(opts, 'interval')
       timeout = consume_option(opts, 'timeout')
       consume_option(opts, 'log_level')
@@ -279,7 +279,7 @@ module CfnCli
 
       # Converts a parameter JSON file to the format expected by CloudFormation
       # @param filename Path to the JSON file containing the parameters description
-      # @return 
+      # @return
       def process_stack_parameters_file(filename)
         content = File.read(filename)
         return CloudFormation.parse_json_params(JSON.parse(content))
