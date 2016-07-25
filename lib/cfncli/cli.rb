@@ -56,7 +56,6 @@ module CfnCli
 
     method_option 'disable_rollback',
                   type: :boolean,
-                  default: false,
                   desc: 'Disable rollbacks in case of a stack update failure'\
                         ' This is mutually exclusive with on_failure.'
 
