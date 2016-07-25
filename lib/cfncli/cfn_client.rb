@@ -4,11 +4,17 @@ module CfnCli
   module CfnClient
 
     attr_accessor :stub_responses
+    attr_accessor :retry_limit
+    attr_accessor :retry_backoff
 
     # CloudFormation client
     # @see http://docs.aws.amazon.com/sdkforruby/api/Aws/CloudFormation/Client.html
     def cfn_client
-      @@client ||= Aws::CloudFormation::Client.new(stub_responses: stub_responses || false)
+      options ||= {}
+      options[:retry_limit] = @retry_limit if @retry_limit
+      options[:retry_backoff] = @retry_backoff if @retry_backoff
+      options[:stub_responses] = @stub_responses || false
+      @@client ||= Aws::CloudFormation::Client.new(**options)
     end
 
     # Clouformation Resource

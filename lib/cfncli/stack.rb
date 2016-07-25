@@ -25,6 +25,9 @@ module CfnCli
       @stack_name = stack_name
       @config = config || default_config
       @child_stacks = Concurrent::Array.new
+
+      @retry_limit = @config.aws_retry_limit
+      @retry_backoff = @config.aws_retry_backoff
     end
 
     def default_config

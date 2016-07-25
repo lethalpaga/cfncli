@@ -114,6 +114,11 @@ module CfnCli
                   default: false,
                   desc: 'Fails if a stack has nothing to update'
 
+    method_option 'retry_limit',
+                  type: :numeric,
+                  default: 5,
+                  desc: 'Maximum number of retries for the AWS backoff mechanism'
+
     desc 'apply', 'Creates a stack in Cloudformation'
     def apply
       opts = process_params(options)
@@ -126,13 +131,14 @@ module CfnCli
       retries = timeout / interval
       fail_on_noop = consume_option(opts, 'fail_on_noop')
       list_events = consume_option(opts, 'list_events')
+      retry_limit = consume_option(opts, 'retry_limit')
       config_file = consume_option(opts, 'config_file')
 
       ENV['CFNCLI_LOG_LEVEL'] = consume_option(opts, 'log_level').to_s
 
       logger.debug "Apply parameters: #{options.inspect}"
 
-      client_config = Config::CfnClient.new(interval, retries, fail_on_noop)
+      client_config = Config::CfnClient.new(interval, retries, fail_on_noop, retry_limit)
 
       res = ExitCode::OK
       if list_events
