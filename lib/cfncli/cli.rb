@@ -170,13 +170,18 @@ module CfnCli
                   default: 1800,
                   desc: 'Timeout (in seconds) for the stack event listing'
 
+    method_option 'retry_limit',
+                  type: :numeric,
+                  default: 5,
+                  desc: 'Maximum number of retries for the AWS backoff mechanism'
+
     desc 'events', 'Displays the events for a stack in realtime'
     def events
       stack_name = options['stack_name']
 
       fail ArgumentError, 'stack_name is required' unless stack_name
 
-      config = Config::CfnClient.new(options['interval'], options['retries'])
+      config = Config::CfnClient.new(options['interval'], options['retries'], options['retry_limit'])
       cfn.events(stack_name, config)
     end
 
@@ -196,6 +201,11 @@ module CfnCli
                   default: 1800,
                   desc: 'Timeout (in seconds) for the stack event listing'
 
+    method_option 'retry_limit',
+                  type: :numeric,
+                  default: 5,
+                  desc: 'Maximum number of retries for the AWS backoff mechanism'
+
     desc 'delete', 'Deletes a stack'
     def delete
       opts = options.dup
@@ -205,11 +215,12 @@ module CfnCli
 
       interval = consume_option(opts, 'interval')
       timeout = consume_option(opts, 'timeout')
+      retry_limit = consume_option(opts, 'timeout')
       consume_option(opts, 'log_level')
       consume_option(opts, 'config_file')
       retries = timeout / interval
 
-      config = Config::CfnClient.new(interval, retries)
+      config = Config::CfnClient.new(interval, retries, retry_limit)
       cfn.delete_stack(opts, config)
     end
 
