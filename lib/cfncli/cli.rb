@@ -29,6 +29,12 @@ module CfnCli
                   default: 'cfncli.yml',
                   desc: 'Configuration file'
 
+    class_option 'sync_stdout',
+                 type: :boolean,
+                 default: true,
+                 desc: 'Force stdout to be flushed everytime. Useful to update logs in real time when running in CI'
+
+
     # Stack options
     method_option 'stack_name',
                   alias: '-n',
@@ -256,6 +262,9 @@ module CfnCli
         check_exclusivity(opts.keys, ['disable_rollback', 'on_failure'])
         check_exclusivity(opts.keys, ['stack_policy_body', 'stack_policy_url'])
         check_exclusivity(opts.keys, ['parameters', 'parameters_file'])
+
+        sync_stdout = consume_option(opts, 'sync_stdout')
+        $stdout.sync = sync_stdout
 
         opts['template_body'] = file_or_content(opts['template_body']) if opts['template_body']
         opts['stack_policy_body'] = file_or_content(opts['stack_policy_body']) if opts['stack_policy_body']
