@@ -52,6 +52,11 @@ module CfnCli
                   desc: 'S3 URL to the Cloudformation template.' \
                         ' This is exclusive with the template_body option'
 
+    method_option 'use_previous_template',
+                  type: :boolean,
+                  desc: 'Reuse the existing template that is associated with ' \
+                        'the stack that you are updating.'
+
     method_option 'parameters',
                   type: :hash,
                   desc: 'Stack parameters. Pass each parameter in the form --parameters key1:value1 key2:value2 or use the @filename syntax to provide a JSON file'
