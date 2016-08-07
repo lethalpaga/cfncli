@@ -100,6 +100,7 @@ module CfnCli
 
     method_option 'tags',
                   type: :hash,
+                  lazy_default: {},
                   desc: 'Key-value pairs to associate with this stack'
 
     # Application options
@@ -272,6 +273,7 @@ module CfnCli
         $stdout.sync = sync_stdout
 
         opts['template_body'] = file_or_content(opts['template_body']) if opts['template_body']
+        opts['tags'] = process_stack_tags(opts['tags']) if opts['tags']
         opts['stack_policy_body'] = file_or_content(opts['stack_policy_body']) if opts['stack_policy_body']
         opts['parameters'] = process_stack_parameters(opts['parameters']) if opts['parameters']
         opts['parameters'] = process_stack_parameters_file(consume_option(opts, 'parameters_file')) if opts['parameters_file']
@@ -330,6 +332,16 @@ module CfnCli
             parameter_value: value
           }
         end
+      end
+
+      def process_stack_tags(tags)
+        return [] unless tags
+
+        real_tags = []
+        tags.each do |key, value|
+          real_tags << { key: key, value: value }
+        end
+        real_tags
       end
 
       # Cloudformation utility object
