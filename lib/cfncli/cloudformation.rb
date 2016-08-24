@@ -41,16 +41,18 @@ module CfnCli
     def apply_and_list_events(options, config = nil)
       # Create/update the stack
       logger.debug "Creating stack #{options['stack_name']}"
+      list_nested_events = options['list_nested_events']
+      options.delete 'list_nested_events'
       stack = create_or_update_stack(options, config)
 
-      events(stack, config)
+      events(stack, config, list_nested_events)
       Waiting.wait(interval: config.interval || default_config.interval, max_attempts: config.retries || default_config.retries) do |waiter|
         waiter.done if stack.finished? && !stack.listing_events?
-      end  
+      end
     end
 
     # List stack events
-    def events(stack_or_name, config = nil, reset_events = true, poller = nil, streamer = nil)
+    def events(stack_or_name, config = nil, list_nested_events = true, reset_events = true, poller = nil, streamer = nil)
       stack = stack_or_name
       stack = create_stack_obj(stack_or_name, config) unless stack_or_name.is_a? CfnCli::Stack
 
@@ -60,7 +62,7 @@ module CfnCli
       streamer.reset_events if reset_events
 
       logger.debug "Listing events for stack #{stack.stack_name}"
-      stack.list_events(poller, streamer, config)
+      stack.list_events(poller, streamer, config, nil, list_nested_events)
     end
 
     # Delete a stack

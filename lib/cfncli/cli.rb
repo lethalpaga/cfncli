@@ -110,6 +110,11 @@ module CfnCli
                   default: true,
                   desc: 'List the stack events during the operation'
 
+    method_option 'list_nested_events',
+                  type: :boolean,
+                  default: true,
+                  desc: 'List events from nested stacks'
+
     method_option 'interval',
                   type: :numeric,
                   default: 10,
@@ -172,6 +177,11 @@ module CfnCli
                   desc: 'Name or ID of the Cloudformation stack'
 
     # Application options.
+    method_option 'list_nested_events',
+                  type: :boolean,
+                  default: true,
+                  desc: 'List events from nested stacks'
+
     method_option 'interval',
                   type: :numeric,
                   default: 10,
@@ -194,7 +204,7 @@ module CfnCli
       fail ArgumentError, 'stack_name is required' unless stack_name
 
       config = Config::CfnClient.new(options['interval'], options['retries'], options['retry_limit'])
-      cfn.events(stack_name, config)
+      cfn.events(stack_name, config, options['list_nested_events'])
     end
 
     method_option 'stack_name',

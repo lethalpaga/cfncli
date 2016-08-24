@@ -95,11 +95,11 @@ module CfnCli
 
     # List all events in real time
     # @param poller [CfnCli::Poller] Poller class to display events
-    def list_events(poller, streamer = nil, config = nil, event_prefix = nil)
+    def list_events(poller, streamer = nil, config = nil, event_prefix = nil, list_nested_events = true)
       @event_listing_thread = Thread.new do
         streamer ||= EventStreamer.new(self, config)
         streamer.each_event do |event|
-          if Event.new(event).child_stack_create_event?
+          if list_nested_events && Event.new(event).child_stack_create_event?
             track_child_stack(event.physical_resource_id, event.logical_resource_id, poller)
           end
           poller.event(event, event_prefix)
