@@ -227,12 +227,25 @@ describe CfnCli::Stack do
     context 'each_event block' do
       let(:resource_id) { 'FAKE_ID' }
       let(:logical_id) { 'TEST_ID' }
-      it 'detects and tracks child stacks if event is a child stack creation' do
-        expect(test_event).to receive(:physical_resource_id).and_return resource_id
-        expect(test_event).to receive(:logical_resource_id).and_return logical_id
-        expect(cli_event).to receive(:child_stack_create_event?).and_return true
-        expect(subject).to receive(:track_child_stack).with resource_id, logical_id, poller
-        subject.list_events poller, streamer
+
+      context 'when list_nested_events is true' do
+        it 'detects and tracks child stacks if event is a child stack creation' do
+          expect(test_event).to receive(:physical_resource_id).and_return resource_id
+          expect(test_event).to receive(:logical_resource_id).and_return logical_id
+          expect(cli_event).to receive(:child_stack_create_event?).and_return true
+          expect(subject).to receive(:track_child_stack).with resource_id, logical_id, poller
+          subject.list_events poller, streamer
+        end
+      end
+
+      context 'when list_nested_events is false' do
+        it 'does not detect and track child stacks if event is a child stack creation' do
+          expect(test_event).not_to receive(:physical_resource_id)
+          expect(test_event).not_to receive(:logical_resource_id)
+          expect(cli_event).not_to receive(:child_stack_create_event?)
+          expect(subject).not_to receive(:track_child_stack)
+          subject.list_events poller, streamer, nil, nil, false
+        end
       end
 
       it 'sends the event to the poller' do
