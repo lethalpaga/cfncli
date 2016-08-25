@@ -31,7 +31,9 @@ module CfnCli
       events.sort { |a, b| a.timestamp <=> b.timestamp }.each do |event|
         yield event unless seen?(event) if block_given?
       end
-   end
+    rescue Aws::CloudFormation::Errors::ServiceError => e
+      raise unless e.class.name == 'Aws::CloudFormation::Errors::Throttling'
+    end
 
     # Mark all the existing events as 'seen'
     def reset_events
