@@ -9,7 +9,8 @@ describe CfnCli::CloudFormation do
   end
 
   describe '#create_or_update_stack' do
-    subject { cfn.create_or_update_stack({}) }
+    let(:opts) { Hash.new }
+    subject { cfn.create_or_update_stack(opts) }
 
     let(:stack) { double CfnCli::Stack }
 
@@ -21,7 +22,7 @@ describe CfnCli::CloudFormation do
     context 'when the stack does not exist' do
       let(:exists) { false }
       it 'is expected to call stack.create' do
-        expect(stack).to receive(:create).with({})
+        expect(stack).to receive(:create).with(opts)
         subject
       end
     end
@@ -29,12 +30,19 @@ describe CfnCli::CloudFormation do
     context 'when the stack exists' do
       let(:exists) { true }
       it 'is expected to call stack.update' do
-        expect(stack).to receive(:update).with({})
+        expect(stack).to receive(:update).with(opts)
         subject
+      end
+      context 'and the opts contain create only options' do
+        let(:opts) { { 'stack_name' => 'test', 'on_failure' => 'DELETE' } }
+        it 'strips out options that are only supported on create' do
+          expect(stack).to receive(:update).with('stack_name' => 'test')
+          subject
+        end
       end
     end
   end
-  
+
   describe '#delete_stack' do
     subject { cfn.delete_stack('stack_name', {}) }
 

@@ -11,6 +11,9 @@ module CfnCli
     include CfnClient
     include Loggable
 
+    # A list of options that only apply for stack creation
+    CREATE_ONLY_OPTIONS = %w(on_failure).freeze
+
     def initialize
     end
 
@@ -29,6 +32,7 @@ module CfnCli
       stack = create_stack_obj(stack_name, config)
 
       if stack.exists?
+        CREATE_ONLY_OPTIONS.each { |key| opts.delete key }
         stack.update(opts)
       else
         stack.create(opts)
