@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    cfncli (0.8.0)
+    cfncli (0.8.1)
       activesupport (~> 4)
       aws-sdk (~> 2)
       colorize (~> 0)
