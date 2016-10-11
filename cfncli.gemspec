@@ -29,7 +29,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency "thor"
   spec.add_dependency "aws-sdk", "~> 2"
   spec.add_dependency "waiting", "~> 0"
-  spec.add_dependency "activesupport", "~> 4"
+  spec.add_dependency "activesupport", ">= 4", "< 6"
   spec.add_dependency "colorize", "~> 0"
   spec.add_dependency "concurrent-ruby", "~> 1.0"
 end
