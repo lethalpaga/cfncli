@@ -70,11 +70,12 @@ module CfnCli
     end
 
     # Delete a stack
-    def delete_stack(options, config)
+    def delete_stack(options, config = nil)
       stack = create_stack_obj(options['stack_name'], config)
       options['stack_name'] = stack.stack_id
       stack.delete(options, config)
       events(stack.stack_id, config)
+      stack
     end
 
     # Returns the stack status
