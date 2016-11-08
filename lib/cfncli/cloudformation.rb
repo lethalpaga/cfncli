@@ -53,6 +53,8 @@ module CfnCli
       Waiting.wait(interval: config.interval || default_config.interval, max_attempts: config.retries || default_config.retries) do |waiter|
         waiter.done if stack.finished? && !stack.listing_events?
       end
+
+      stack
     end
 
     # List stack events
@@ -74,7 +76,25 @@ module CfnCli
       stack = create_stack_obj(options['stack_name'], config)
       options['stack_name'] = stack.stack_id
       stack.delete(options, config)
-      events(stack.stack_id, config)
+      stack
+    end
+
+    def delete_and_list_events(options, config = nil)
+      # Create/update the stack
+      logger.debug "Deleting stack #{options['stack_name']}"
+      list_nested_events = options['list_nested_events']
+      options.delete 'list_nested_events'
+      stack = delete_stack(options, config)
+
+      events(stack.stack_id, config, list_nested_events)
+
+      interval = config.interval if config
+      interval = default_config.interval unless interval
+      Waiting.wait(interval: interval, max_attempts: config.retries || default_config.retries) do |waiter|
+        waiter.done if stack.finished? && !stack.listing_events?
+        sleep 1
+      end
+
       stack
     end
 

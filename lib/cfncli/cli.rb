@@ -213,6 +213,17 @@ module CfnCli
                   desc: 'Name or ID of the Cloudformation stack'
 
     # Application options.
+    method_option 'list_events',
+                  alias: '-l',
+                  type: :boolean,
+                  default: true,
+                  desc: 'List the stack events during the operation'
+
+    method_option 'list_nested_events',
+                  type: :boolean,
+                  default: true,
+                  desc: 'List events from nested stacks'
+
     method_option 'interval',
                   type: :numeric,
                   default: 10,
@@ -235,6 +246,7 @@ module CfnCli
 
       fail ArgumentError, 'stack_name is required' unless stack_name
 
+      list_events = consume_option(opts, 'list_events')
       interval = consume_option(opts, 'interval')
       timeout = consume_option(opts, 'timeout')
       retry_limit = consume_option(opts, 'timeout')
@@ -242,8 +254,14 @@ module CfnCli
       consume_option(opts, 'config_file')
       retries = timeout / interval
 
-      config = Config::CfnClient.new(interval, retries, retry_limit)
-      cfn.delete_stack(opts, config)
+      client_config = Config::CfnClient.new(interval, retries, retry_limit)
+
+      if list_events
+        stack = cfn.delete_and_list_events(opts, client_config)
+        res = ExitCode::STACK_ERROR unless cfn.stack_successful? stack.stack_id
+      else
+        cfn.delete_stack(opts, client_config)
+      end
     end
 
     method_option 'verbose',

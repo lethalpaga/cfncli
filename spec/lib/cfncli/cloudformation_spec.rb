@@ -60,7 +60,6 @@ describe CfnCli::CloudFormation do
       let(:exists) { true }
       it 'is expected to call stack.delete' do
         expect(stack).to receive(:delete).with('stack_id', {})
-        expect(stack).to receive(:events).and_return([])
         subject
       end
     end
