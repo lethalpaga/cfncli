@@ -40,6 +40,7 @@ module CfnCli
         'UPDATE_ROLLBACK_FAILED',
         'UPDATE_ROLLBACK_COMPLETE_CLEANUP_IN_PROGRESS',
         'UPDATE_ROLLBACK_COMPLETE',
+        'REVIEW_IN_PROGRESS'
       ]
     end
 
