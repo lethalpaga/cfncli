@@ -58,10 +58,16 @@ describe CfnCli::Cli do
     subject { cli.process_stack_parameters(params) }
 
     let(:params) do
-      {
-        opt1: 'val1',
-        opt2: 'val2'
-      }
+      [
+        {
+          'ParameterKey' => :opt1,
+          'ParameterValue' => 'val1'
+        },
+        {
+          'ParameterKey' => :opt2,
+          'ParameterValue' => 'val2'
+        }
+      ]
     end
 
     let(:expected_result) do
