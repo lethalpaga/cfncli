@@ -1,3 +1,5 @@
+require 'aws-sdk-cloudformation'
+
 module CfnCli
   class EventStreamer
     require 'cfncli/config'

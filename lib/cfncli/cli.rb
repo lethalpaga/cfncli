@@ -1,5 +1,5 @@
 require 'thor'
-require 'aws-sdk'
+require 'aws-sdk-cloudformation'
 
 require 'cfncli/cloudformation'
 require 'cfncli/config'

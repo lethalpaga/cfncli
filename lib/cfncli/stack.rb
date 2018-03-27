@@ -7,6 +7,7 @@ require 'cfncli/states'
 require 'thread'
 require 'concurrent/array'
 require 'waiting'
+require 'aws-sdk-cloudformation'
 
 module CfnCli
   class Stack
