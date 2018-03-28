@@ -58,8 +58,8 @@ module CfnCli
                         'the stack that you are updating.'
 
     method_option 'parameters',
-                  type: :hash,
-                  desc: 'Stack parameters. Pass each parameter in the form --parameters key1:value1 key2:value2 or use the @filename syntax to provide a JSON file'
+                  type: :array,
+                  desc: 'Stack parameters. Pass each parameter in the form --parameters ParameterValue=key1,ParameterValue=value1 ParameterKey=key2,ParameterValue2=value2 or use the @filename syntax to provide a JSON file'
 
     method_option 'parameters_file',
                   type: :string,
@@ -354,12 +354,7 @@ module CfnCli
         return file_or_content(parameters) if file_param? parameters
 
         # Otherwise convert each param to the cfn structure
-        parameters.map do |param|
-          {
-            parameter_key: param['ParameterKey'],
-            parameter_value: param['ParameterValue']
-          }
-        end
+        parse_cli_params(parameters)
       end
 
       def process_stack_tags(tags)
@@ -370,6 +365,29 @@ module CfnCli
           real_tags << { key: key, value: value }
         end
         real_tags
+      end
+
+      def parse_cli_params(params)
+        validation_failures = []
+        parsed_params = params.map.with_index do |param, i|
+          key, value = param.split(',', 2)
+          if key.nil? || value.nil?
+            validations << "- Parameter[#{i}] format invalid: #{param}"
+            next
+          end
+          param_key_key, param_key_value = key.split('=', 2)
+          param_value_key, param_value_value = value.split('=', 2)
+          validation_failures << "- Parameter[#{i}] missing ParameterKey key: #{param}" unless param_key_key.downcase == 'parameterkey'
+          validation_failures << "- Parameter[#{i}] missing ParameterKey value: #{param}" if param_key_value.nil?
+          validation_failures << "- Parameter[#{i}] missing ParameterValue key: #{param}" unless param_value_key.downcase == 'parametervalue'
+          validation_failures << "- Parameter[#{i}] missing ParameterValue value: #{param}" if param_value_value.nil?
+          {
+            parameter_key: param_key_value,
+            parameter_value: param_value_value
+          }
+        end
+        raise "Parameter validation failed:\n#{validation_failures.join("\n")}" unless validation_failures.empty?
+        parsed_params
       end
 
       # Cloudformation utility object

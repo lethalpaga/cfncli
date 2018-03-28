@@ -59,25 +59,19 @@ describe CfnCli::Cli do
 
     let(:params) do
       [
-        {
-          'ParameterKey' => :opt1,
-          'ParameterValue' => 'val1'
-        },
-        {
-          'ParameterKey' => :opt2,
-          'ParameterValue' => 'val2'
-        }
+        "ParameterKey=opt1,ParameterValue=val1",
+        "ParameterKey=opt2,ParameterValue=val2"
       ]
     end
 
     let(:expected_result) do
       [
         {
-          parameter_key: :opt1,
+          parameter_key: "opt1",
           parameter_value: 'val1'
         },
         {
-          parameter_key: :opt2,
+          parameter_key: "opt2",
           parameter_value: 'val2'
         }
       ]
