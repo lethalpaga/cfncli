@@ -202,6 +202,29 @@ describe CfnCli::Stack do
     end
   end
 
+
+  describe '#events' do
+    let(:event) do
+      {
+        event_id: '2',
+        stack_id: stack.stack_id,
+        stack_name: stack.stack_name,
+        timestamp: Time.now
+      }
+    end
+
+    before do
+      client.stub_responses :describe_stack_events, {
+        stack_events: [
+          event
+        ]
+      }
+    end
+    it 'returns the stack events' do
+      expect(stack.events.first.event_id).to eq(event[:event_id])
+    end
+  end
+
   describe '#list_events' do
     let(:streamer) { double('CfnCli::EventStreamer') }
     let(:poller) { double('CfnCli::EventPoller') }
