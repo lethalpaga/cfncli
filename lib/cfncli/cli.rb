@@ -354,10 +354,10 @@ module CfnCli
         return file_or_content(parameters) if file_param? parameters
 
         # Otherwise convert each param to the cfn structure
-        parameters.map do |key, value|
+        parameters.map do |param|
           {
-            parameter_key: key,
-            parameter_value: value
+            parameter_key: param['ParameterKey'],
+            parameter_value: param['ParameterValue']
           }
         end
       end
