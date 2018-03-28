@@ -109,8 +109,8 @@ module CfnCli
     end
 
     # Get the events from the cfn stack
-    def events(next_token)
-      stack.events(next_token)
+    def events(next_token = nil)
+      stack.events(next_token: next_token)
     end
 
     # Is this stack currently listing events
