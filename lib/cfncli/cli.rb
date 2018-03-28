@@ -371,16 +371,16 @@ module CfnCli
         validation_failures = []
         parsed_params = params.map.with_index do |param, i|
           key, value = param.split(',', 2)
-          if key.nil? || value.nil?
-            validations << "- Parameter[#{i}] format invalid: #{param}"
+          if key.to_s.empty? || value.to_s.empty?
+            validation_failures << "- Parameter[#{i}] format invalid: #{param}"
             next
           end
           param_key_key, param_key_value = key.split('=', 2)
           param_value_key, param_value_value = value.split('=', 2)
           validation_failures << "- Parameter[#{i}] missing ParameterKey key: #{param}" unless param_key_key.downcase == 'parameterkey'
-          validation_failures << "- Parameter[#{i}] missing ParameterKey value: #{param}" if param_key_value.nil?
+          validation_failures << "- Parameter[#{i}] missing ParameterKey value: #{param}" if param_key_value.to_s.empty?
           validation_failures << "- Parameter[#{i}] missing ParameterValue key: #{param}" unless param_value_key.downcase == 'parametervalue'
-          validation_failures << "- Parameter[#{i}] missing ParameterValue value: #{param}" if param_value_value.nil?
+          validation_failures << "- Parameter[#{i}] missing ParameterValue value: #{param}" if param_value_value.to_s.empty?
           {
             parameter_key: param_key_value,
             parameter_value: param_value_value
