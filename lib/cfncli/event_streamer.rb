@@ -29,12 +29,12 @@ module CfnCli
 
     def list_events(&block)
       events = []
-      @next_token = stack.events(@next_token).each { |event| events << event }
+      stack.events.each { |event| events << event }
       events.sort { |a, b| a.timestamp <=> b.timestamp }.each do |event|
         yield event unless seen?(event) if block_given?
       end
-    rescue Aws::CloudFormation::Errors::ServiceError => e
-      raise unless e.class.name == 'Aws::CloudFormation::Errors::Throttling'
+    rescue Aws::CloudFormation::Errors::Throttling => e
+      # Ignoring throttling limit
     end
 
     # Mark all the existing events as 'seen'
